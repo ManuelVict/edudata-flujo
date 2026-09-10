@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Seguimiento visual del flujo de actualización de las bases de Edudata." />
+  <title>Edudata Flujo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">OBSERVATORIO DE LA EDUCACIÓN</span>
+      <h1>Edudata <strong>Flujo</strong></h1>
+    </div>
+    <div class="period-control">
+      <label for="periodSelect">Periodo</label>
+      <select id="periodSelect" aria-label="Seleccionar periodo"></select>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="Resumen del periodo">
+      <article><span>Progreso general</span><strong id="overallProgress">0%</strong><div class="meter"><i id="overallBar"></i></div></article>
+      <article><span>Terminadas</span><strong id="doneCount">0</strong><small>actualizaciones cerradas</small></article>
+      <article><span>En curso</span><strong id="activeCount">0</strong><small>con actividad pendiente</small></article>
+      <article class="danger-card"><span>Requieren atención</span><strong id="attentionCount">0</strong><small>en espera o bloqueadas</small></article>
+    </section>
+
+    <section class="workspace">
+      <aside class="base-panel">
+        <div class="panel-title">
+          <div><span class="eyebrow dark">BASES</span><h2>Actualizaciones</h2></div>
+          <span id="baseCount" class="count-pill"></span>
+        </div>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="baseSearch" type="search" placeholder="Buscar base o tablero" /></label>
+        <div id="baseList" class="base-list"></div>
+      </aside>
+
+      <section class="flow-panel">
+        <div class="flow-heading">
+          <div>
+            <span id="baseOrganism" class="eyebrow dark"></span>
+            <h2 id="baseTitle"></h2>
+            <p id="baseMeta"></p>
+          </div>
+          <div id="healthBadge" class="health-badge"></div>
+        </div>
+
+        <div id="notApplicable" class="empty-state" hidden>
+          <strong>No aplica para este periodo</strong>
+          <span>La base permanece visible, pero sus etapas no cuentan en el avance mensual.</span>
+        </div>
+
+        <div id="flowContent">
+          <div class="flow-scroll">
+            <div id="flowDiagram" class="flow-diagram" aria-label="Diagrama de actualización"></div>
+          </div>
+
+          <div class="detail-grid">
+            <article class="current-card">
+              <span class="eyebrow dark">ETAPA ACTUAL</span>
+              <h3 id="currentStage"></h3>
+              <dl>
+                <div><dt>Responsable</dt><dd id="currentOwner"></dd></div>
+                <div><dt>Próxima acción</dt><dd id="nextAction"></dd></div>
+              </dl>
+              <div class="actions">
+                <button id="advanceButton" class="primary">Completar etapa</button>
+                <button id="blockButton" class="secondary">Registrar bloqueo</button>
+              </div>
+            </article>
+
+            <article id="incidentCard" class="incident-card">
+              <span class="eyebrow dark">SEGUIMIENTO</span>
+              <h3 id="incidentTitle">Sin bloqueos reportados</h3>
+              <p id="incidentText">La actualización puede continuar según el flujo previsto.</p>
+              <button id="clearBlockButton" class="link-button" hidden>Resolver bloqueo</button>
+            </article>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="blockDialog">
+    <form method="dialog" id="blockForm">
+      <div class="dialog-head"><div><span class="eyebrow dark">INCIDENCIA</span><h2>Registrar bloqueo</h2></div><button value="cancel" class="icon-button" aria-label="Cerrar">×</button></div>
+      <label>¿Qué está impidiendo avanzar?<textarea id="blockReason" required rows="4" placeholder="Ej. El archivo llegó incompleto"></textarea></label>
+      <label>¿Quién debe resolverlo?<input id="blockOwner" required placeholder="Nombre o dependencia" /></label>
+      <div class="dialog-actions"><button value="cancel" class="secondary">Cancelar</button><button id="saveBlockButton" value="default" class="primary">Guardar bloqueo</button></div>
+    </form>
+  </dialog>
+
+  <footer><span>Datos de demostración · Los cambios se guardan en este navegador</span><button id="resetButton" class="link-button">Restablecer demo</button></footer>
+  <script src="app.js"></script>
+</body>
+</html>
+
