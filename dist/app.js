@@ -79,6 +79,80 @@ function healthLabel(health) {
   return { done: "Terminada", active: "En curso", waiting: "Esperando respuesta", blocked: "Bloqueada", na: "No aplica" }[health];
 }
 
+function graphState(item, stepIndex) {
+  if (!item.applies) return "pending";
+  if (item.incident && item.progress === stepIndex) return "blocked";
+  if (item.progress > stepIndex) return "done";
+  if (item.progress === stepIndex) return "current";
+  return "pending";
+}
+
+function graphText(lines, x, y, className = "node-label") {
+  const start = y - ((lines.length - 1) * 8);
+  return `<text class="${className}" x="${x}" y="${start}" text-anchor="middle">${lines.map((line, index) => `<tspan x="${x}" dy="${index ? 17 : 0}">${line}</tspan>`).join("")}</text>`;
+}
+
+function rectNode(id, x, y, lines, state) {
+  return `<g class="graph-node ${state}" data-node="${id}"><rect x="${x}" y="${y}" width="132" height="70" rx="12"/>${graphText(lines, x + 66, y + 39)}</g>`;
+}
+
+function decisionNode(id, cx, cy, lines, state) {
+  const points = `${cx},${cy - 55} ${cx + 72},${cy} ${cx},${cy + 55} ${cx - 72},${cy}`;
+  return `<g class="graph-node decision ${state}" data-node="${id}"><polygon points="${points}"/>${graphText(lines, cx, cy + 4)}</g>`;
+}
+
+function renderGraph(item) {
+  const mainEdge = (stepIndex) => graphState(item, stepIndex) === "done" ? "done" : "pending";
+  const waiting = item.applies && item.health === "waiting" && item.progress <= 1;
+  const dataBlocked = Boolean(item.incident) && item.progress <= 3;
+  const boardBlocked = Boolean(item.incident) && item.progress >= 6;
+  const nodes = [
+    rectNode("inicio", 12, 265, ["Inicio"], item.applies ? "done" : "current"),
+    decisionNode("aplica", 185, 300, ["¿Aplica este", "mes?"], item.applies ? "done" : "current"),
+    rectNode("solicitud", 280, 265, ["Enviar", "solicitud"], graphState(item, 0)),
+    decisionNode("recibida", 505, 300, ["¿Base", "recibida?"], graphState(item, 1)),
+    rectNode("procesamiento", 600, 265, ["Procesar", "datos"], graphState(item, 2)),
+    decisionNode("validacion", 825, 300, ["¿Validación", "aprobada?"], graphState(item, 3)),
+    decisionNode("drive", 990, 300, ["¿Requiere", "Drive?"], graphState(item, 4)),
+    decisionNode("lago", 1155, 300, ["¿Requiere", "lago?"], graphState(item, 5)),
+    rectNode("tablero", 1250, 265, ["Actualizar", "tablero"], graphState(item, 6)),
+    decisionNode("revision-final", 1475, 300, ["¿Revisión final", "aprobada?"], graphState(item, 7)),
+    rectNode("terminada", 1570, 265, ["Terminada"], graphState(item, 8)),
+    rectNode("no-aplica", 119, 465, ["Registrar", "No aplica"], item.applies ? "branch" : "current"),
+    rectNode("recordatorio", 439, 70, ["Recordatorio", "y escalamiento"], waiting ? "waiting" : "branch"),
+    rectNode("corregir-datos", 759, 465, ["Corregir o", "devolver datos"], dataBlocked ? "blocked" : "branch"),
+    rectNode("subir-drive", 924, 70, ["Subir al", "Drive"], graphState(item, 4)),
+    rectNode("cargar-lago", 1089, 465, ["Cargar al", "lago de datos"], graphState(item, 5)),
+    rectNode("corregir-tablero", 1409, 70, ["Corregir", "tablero"], boardBlocked ? "blocked" : "branch")
+  ].join("");
+
+  return `<div class="graph-legend"><span><i class="done"></i>Completado</span><span><i class="current"></i>Etapa actual</span><span><i class="waiting"></i>Esperando</span><span><i class="blocked"></i>Bloqueado</span></div>
+  <svg class="graph-svg" viewBox="0 0 1715 585" role="img" aria-label="Flujo con decisiones y retornos de ${item.name}">
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z"/></marker></defs>
+    <g class="edges">
+      <path class="${mainEdge(-1)}" d="M144 300H108"/><path class="${mainEdge(0)}" d="M257 300H280"/>
+      <path class="${mainEdge(0)}" d="M412 300H433"/><path class="${mainEdge(1)}" d="M577 300H600"/>
+      <path class="${mainEdge(2)}" d="M732 300H753"/><path class="${mainEdge(3)}" d="M897 300H918"/>
+      <path class="${mainEdge(4)}" d="M1062 300H1083"/><path class="${mainEdge(5)}" d="M1227 300H1250"/>
+      <path class="${mainEdge(6)}" d="M1382 300H1403"/><path class="${mainEdge(7)}" d="M1547 300H1570"/>
+      <path class="branch ${item.applies ? "" : "chosen"}" d="M185 355V465"/>
+      <path class="branch ${waiting ? "chosen" : ""}" d="M505 245V140"/><path class="return ${waiting ? "chosen" : ""}" d="M571 105H595V215H505V245"/>
+      <path class="branch ${dataBlocked ? "chosen" : ""}" d="M825 355V465"/><path class="return ${dataBlocked ? "chosen" : ""}" d="M759 500H690V335"/>
+      <path class="branch" d="M990 245V140"/><path class="return" d="M1056 105H1155V245"/>
+      <path class="branch" d="M1155 355V465"/><path class="return" d="M1221 500H1235V335H1250"/>
+      <path class="branch ${boardBlocked ? "chosen" : ""}" d="M1475 245V140"/><path class="return ${boardBlocked ? "chosen" : ""}" d="M1409 105H1360V265"/>
+    </g>
+    <g class="edge-labels">
+      <text x="267" y="287">Sí</text><text x="197" y="408">No</text>
+      <text x="584" y="287">Sí</text><text x="518" y="194">No</text>
+      <text x="905" y="287">Sí</text><text x="838" y="408">No</text>
+      <text x="1069" y="287">No</text><text x="1003" y="194">Sí</text>
+      <text x="1233" y="287">No</text><text x="1168" y="408">Sí</text>
+      <text x="1554" y="287">Sí</text><text x="1488" y="194">No</text>
+    </g>${nodes}
+  </svg>`;
+}
+
 function renderSummary() {
   const applicable = currentRows().filter((item) => item.applies);
   const totalProgress = applicable.length ? Math.round(applicable.reduce((sum, item) => sum + percent(item), 0) / applicable.length) : 0;
@@ -113,22 +187,16 @@ function renderFlow() {
   $("baseMeta").textContent = `${item.dashboard} · Responsable de actualización: ${item.owner}`;
   $("healthBadge").textContent = healthLabel(health);
   $("healthBadge").className = `health-badge ${health}`;
-  $("notApplicable").hidden = item.applies;
-  $("flowContent").hidden = !item.applies;
-  if (!item.applies) return;
-
-  $("flowDiagram").innerHTML = steps.map((step, index) => {
-    const state = index < item.progress ? "done" : index === item.progress ? (item.incident ? "blocked" : "current") : "pending";
-    const connector = index < steps.length - 1 ? `<span class="connector ${index < item.progress ? "done" : ""}"></span>` : "";
-    return `<div class="step-wrap"><article class="step ${state}"><span class="step-number">${state === "done" ? "✓" : index + 1}</span><strong>${step.label}</strong><small>${index < item.progress ? "Completada" : index === item.progress ? item.owner : "Pendiente"}</small></article>${connector}</div>`;
-  }).join("");
+  $("notApplicable").hidden = true;
+  $("flowContent").hidden = false;
+  $("flowDiagram").innerHTML = renderGraph(item);
 
   const current = steps[Math.min(item.progress, steps.length - 1)];
-  $("currentStage").textContent = item.progress >= steps.length ? "Actualización cerrada" : current.label;
-  $("currentOwner").textContent = item.owner;
-  $("nextAction").textContent = item.progress >= steps.length ? "No hay acciones pendientes" : current.action;
-  $("advanceButton").disabled = item.progress >= steps.length || Boolean(item.incident);
-  $("blockButton").disabled = item.progress >= steps.length || Boolean(item.incident);
+  $("currentStage").textContent = !item.applies ? "No aplica en este periodo" : item.progress >= steps.length ? "Actualización cerrada" : current.label;
+  $("currentOwner").textContent = item.applies ? item.owner : "Sin asignación";
+  $("nextAction").textContent = !item.applies ? "Revisar nuevamente el próximo mes" : item.progress >= steps.length ? "No hay acciones pendientes" : current.action;
+  $("advanceButton").disabled = !item.applies || item.progress >= steps.length || Boolean(item.incident);
+  $("blockButton").disabled = !item.applies || item.progress >= steps.length || Boolean(item.incident);
 
   $("incidentCard").className = `incident-card ${item.incident ? "blocked" : ""}`;
   $("incidentTitle").textContent = item.incident ? item.incident.reason : "Sin bloqueos reportados";

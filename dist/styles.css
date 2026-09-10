@@ -64,9 +64,27 @@ main { padding: 24px clamp(16px, 4vw, 64px) 32px; }
 .flow-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
 .flow-heading p { margin: 7px 0 0; color: var(--muted); font-size: .88rem; }
 .health-badge { border-radius: 24px; padding: 8px 12px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
-.health-badge.done { color: var(--green); background: var(--green-bg); }.health-badge.active { color: var(--blue); background: #e5efff; }.health-badge.waiting { color: var(--yellow); background: var(--yellow-bg); }.health-badge.blocked { color: var(--red); background: var(--red-bg); }
-.flow-scroll { overflow-x: auto; padding: 34px 2px 26px; }
-.flow-diagram { display: flex; align-items: stretch; min-width: max-content; }
+.health-badge.done { color: var(--green); background: var(--green-bg); }.health-badge.active { color: var(--blue); background: #e5efff; }.health-badge.waiting { color: var(--yellow); background: var(--yellow-bg); }.health-badge.blocked { color: var(--red); background: var(--red-bg); }.health-badge.na { color: #657287; background: var(--gray-bg); }
+.flow-scroll { overflow-x: auto; padding: 22px 2px 18px; }
+.flow-diagram { min-width: 980px; }
+.graph-svg { display: block; width: 100%; min-width: 1500px; height: auto; }
+.graph-svg .edges path { fill: none; stroke: #bac5d2; stroke-width: 3; marker-end: url(#arrow); }
+.graph-svg .edges path.done { stroke: var(--green); }
+.graph-svg .edges path.branch { stroke-dasharray: 7 6; }
+.graph-svg .edges path.return { stroke: #94a2b4; stroke-dasharray: 5 5; }
+.graph-svg .edges path.chosen { stroke: var(--red); stroke-width: 4; }
+.graph-node rect, .graph-node polygon { fill: #fff; stroke: #b9c5d4; stroke-width: 2; }
+.graph-node.done rect, .graph-node.done polygon { fill: var(--green-bg); stroke: var(--green); }
+.graph-node.current rect, .graph-node.current polygon { fill: #e8f1ff; stroke: var(--blue); stroke-width: 4; }
+.graph-node.waiting rect, .graph-node.waiting polygon { fill: var(--yellow-bg); stroke: var(--yellow); stroke-width: 3; }
+.graph-node.blocked rect, .graph-node.blocked polygon { fill: var(--red-bg); stroke: var(--red); stroke-width: 4; }
+.graph-node.branch rect, .graph-node.branch polygon { fill: #f6f8fb; stroke-dasharray: 5 4; }
+.node-label { fill: var(--ink); font-size: 14px; font-weight: 750; }
+.edge-labels text { fill: #647287; font-size: 12px; font-weight: 800; paint-order: stroke; stroke: #fff; stroke-width: 5px; }
+.graph-legend { display: flex; gap: 18px; flex-wrap: wrap; padding: 0 2px 8px; color: var(--muted); font-size: .75rem; font-weight: 700; }
+.graph-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.graph-legend i { width: 10px; height: 10px; border-radius: 50%; background: #bbc5d1; }
+.graph-legend i.done { background: var(--green); }.graph-legend i.current { background: var(--blue); }.graph-legend i.waiting { background: var(--yellow); }.graph-legend i.blocked { background: var(--red); }
 .step-wrap { display: flex; align-items: center; }
 .step { width: 154px; min-height: 132px; border: 2px solid var(--line); background: #fff; border-radius: 14px; padding: 15px; position: relative; transition: transform .2s ease, box-shadow .2s ease; }
 .step:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(24, 52, 88, .1); }
@@ -121,4 +139,3 @@ footer { max-width: 1500px; margin: 0 auto; padding: 18px clamp(16px, 4vw, 64px)
   dl { grid-template-columns: 1fr; }
   footer { flex-direction: column; gap: 10px; }
 }
-
