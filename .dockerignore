@@ -1,0 +1,10 @@
+.git
+.gitignore
+.codex
+.gemini
+.openai
+.sites-runtime
+.env
+.DS_Store
+scratch
+*.log

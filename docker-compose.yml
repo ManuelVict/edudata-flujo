@@ -1,0 +1,18 @@
+services:
+  edudata-flujo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: edudata-flujo:latest
+    container_name: edudata-flujo
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    environment:
+      - TZ=America/Bogota
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

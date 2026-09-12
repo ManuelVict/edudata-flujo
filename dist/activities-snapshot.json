@@ -1,0 +1,434 @@
+[
+  {
+    "id": "1",
+    "task": "Manuales tableros. Establecimientos educativos",
+    "owner": "Eduardo",
+    "start": "29/7/2026",
+    "end": "28/08/2026",
+    "status": "Sin iniciar",
+    "comments": "Incluir todo el paso a paso con los flujos."
+  },
+  {
+    "id": "2",
+    "task": "Manuales tableros. Estudiantes",
+    "owner": "Eduardo",
+    "start": "",
+    "end": "",
+    "status": "Finalizada",
+    "comments": "Entregado Jul 9 2026. Revisar. Incluir todo el paso a paso con los flujos."
+  },
+  {
+    "id": "3",
+    "task": "Correcciones Resumen CEPAL",
+    "owner": "Eduardo",
+    "start": "28/7/2026",
+    "end": "29/7/2026",
+    "status": "Finalizada",
+    "comments": "Falta aprobación de Nini"
+  },
+  {
+    "id": "4",
+    "task": "Análisis base de Convivencia Escolar--SIUCE",
+    "owner": "Eduardo",
+    "start": "6/8/2026",
+    "end": "",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "5",
+    "task": "Solicitud SIIED (DANE)",
+    "owner": "Eduardo",
+    "start": "10/6/2026",
+    "end": "",
+    "status": "Atrasada",
+    "comments": ""
+  },
+  {
+    "id": "6",
+    "task": "Cálculo de indicadores para Planeación",
+    "owner": "Eduardo + María Isabel",
+    "start": "",
+    "end": "09/09/2026",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Documento RFI (Alejandro Reyes)",
+    "owner": "Manuel + Eduardo",
+    "start": "28/7/2026",
+    "end": "30/07/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "2",
+    "task": "Elaboración Acuerdo de confidencialidad y transferencia de información bases Convivencia Escolar (Adriana Quiñonez)",
+    "owner": "Manuel + María Isabel",
+    "start": "29/7/2026",
+    "end": "30/07/2026",
+    "status": "Finalizada",
+    "comments": "Seguimiento con Adriana Quiñonez."
+  },
+  {
+    "id": "3",
+    "task": "Matriz de seguimiento Agosto",
+    "owner": "Manuel + María Isabel",
+    "start": "24/8/2026",
+    "end": "28/08/2026",
+    "status": "Sin iniciar",
+    "comments": ""
+  },
+  {
+    "id": "4",
+    "task": "Actualizar fuentes y custodios de información (\"araña\")",
+    "owner": "Manuel",
+    "start": "",
+    "end": "",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "5",
+    "task": "Solicitud de bases de datos: SIMAT, DUE, HUMANO",
+    "owner": "Manuel",
+    "start": "",
+    "end": "06/08/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "6",
+    "task": "Exposición documentos enviados por Blend360",
+    "owner": "Manuel",
+    "start": "7/8/2026",
+    "end": "28/08/2026",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "7",
+    "task": "Tablero organizaciones aliadas",
+    "owner": "Manuel",
+    "start": "",
+    "end": "",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "8",
+    "task": "Análisis bases de datos y retroalimentación custodios de la información.",
+    "owner": "Manuel",
+    "start": "25/8/2026",
+    "end": "01/09/2026",
+    "status": "En progreso",
+    "comments": "Ya se identificaron las inconsistencias del HUMANO. Se proyetó el correo para Glasford Britton."
+  },
+  {
+    "id": "9",
+    "task": "Formato de seguimiento actualización bases de datos de EduData",
+    "owner": "Manuel",
+    "start": "6/8/2026",
+    "end": "01/09/2026",
+    "status": "En progreso",
+    "comments": "Ya Manuel tiene una propuesta que pondrá a consideración del equipo. Falta aprobación de Nini."
+  },
+  {
+    "id": "10",
+    "task": "Flujo de procesos",
+    "owner": "Manuel + Sebasián",
+    "start": "",
+    "end": "",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Revisión de reportes",
+    "owner": "María Isabel",
+    "start": "29/7/2026",
+    "end": "",
+    "status": "En progreso",
+    "comments": "Se revisaron los reportes de los tableros de establecimientos, docentes y estudiantes. Sin embargo, dado que todavía presentaban múltiples discrepancias e inconsistencias en los datos (e.g., no se había incorporado la matrícula de la sede Marisol de la IE Gabriela Mistral; faltaba 1 docente en el reporte de Establecimientos y de Docentes; había una discrepancia de los datos en el número de instituciones en el tablero de Establecimientos vs. su reporte) se paró la revisión hasta que Sebastián termine de realizar los ajustes."
+  },
+  {
+    "id": "2",
+    "task": "Seguimiento a la recepción de las bases de indicadores (Caterine): 1S, 3S y 4S",
+    "owner": "María Isabel",
+    "start": "29/7/2026",
+    "end": "04/08/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "3",
+    "task": "Revisión documento RFI",
+    "owner": "María Isabel",
+    "start": "28/7/2026",
+    "end": "28/07/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "4",
+    "task": "Estudio técnico zonas de difícil acceso",
+    "owner": "María Isabel",
+    "start": "11/07/2026",
+    "end": "30/7/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "5",
+    "task": "Revisión guion y pauta metodológica invitado Foro Plan decenal de educación Cali 2027-2036",
+    "owner": "María Isabel",
+    "start": "28/7/2026",
+    "end": "31/7/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "6",
+    "task": "Revisión resumen CEPAL",
+    "owner": "María Isabel",
+    "start": "24/7/2026",
+    "end": "28/7/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "7",
+    "task": "Matriz seguimiento Julio",
+    "owner": "María Isabel + Manuel",
+    "start": "29/7/2026",
+    "end": "31/7/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "8",
+    "task": "Revisión ajustes EduData",
+    "owner": "María Isabel",
+    "start": "29/7/2026",
+    "end": "29/7/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "9",
+    "task": "Gestionar taller con el equipo del Plan Estadístico (Otálora + Torres)",
+    "owner": "María Isabel",
+    "start": "29/7/2029",
+    "end": "3/8/2026",
+    "status": "Finalizada",
+    "comments": "El taller se realizará el 18 de agosto de 2026, de 8:00 a.m. a 12 m.\nLugar: Secretaría de Educación Distrital de Cali, salón X, piso Y."
+  },
+  {
+    "id": "10",
+    "task": "Reunión con Abogado Yarce + Despacho SED + Nini. Asunto: Institucionalización EduData Cali",
+    "owner": "María Isabel",
+    "start": "3/8/2026",
+    "end": "4/8/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "11",
+    "task": "Socialización EduData equipo Subsecretaría de Calidad Educativa",
+    "owner": "María Isabel",
+    "start": "3/8/2026",
+    "end": "5/8/2026",
+    "status": "Finalizada",
+    "comments": "Se agendó la asesoría virtual (lunes, 10 de agosto) para el reconocimiento de la plataforma EduData Cali para el equipo de Ecosistemas de innovación de la Subsecretaría de Calidad Educativa"
+  },
+  {
+    "id": "12",
+    "task": "Revisión actualización EduData. Próximo lunes, 10 de agosto",
+    "owner": "María Isabel",
+    "start": "30/7/2026",
+    "end": "10/8/2026",
+    "status": "finalizado",
+    "comments": ""
+  },
+  {
+    "id": "13",
+    "task": "Crear carpeta con documentos del Observatorio para el Abogado Yarce",
+    "owner": "María Isabel",
+    "start": "4/8/2026",
+    "end": "5/8/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "14",
+    "task": "Elaborar oficios invitando a cada Subsecretaría + correos socialización interna EduData (lo firma Sara + Niki)",
+    "owner": "María Isabel",
+    "start": "5/8/2026",
+    "end": "10/8/2026",
+    "status": "En progreso",
+    "comments": "Neidy ayudó a conseguir los espacios pero consiguió el Odín. Vamos a buscar un espacio más grande. Ya concerté con Nini el cronograma, fechas, hora y espacio para cada Subsecretaría. A la espera del VoBo de Nini para enviar a Ilda para orfear."
+  },
+  {
+    "id": "15",
+    "task": "Revisión bases premio INNOVA 2026",
+    "owner": "María Isabel",
+    "start": "6/8/2026",
+    "end": "7/8/2026",
+    "status": "En progreso",
+    "comments": "A la espera de Reunión con Nini para definir si podemos participar o no"
+  },
+  {
+    "id": "16",
+    "task": "Revisión Ficha Técnica y tablero de Mapa de emergencia",
+    "owner": "María Isabel",
+    "start": "24/8/2026",
+    "end": "25/8/2026",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "17",
+    "task": "Revisión Resolución Observatorio de la Educación enviada por el abogado Cristian Yarce",
+    "owner": "María Isabel",
+    "start": "27/8/2026",
+    "end": "7/9/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Proyecto BP26005337",
+    "owner": "Alejandro",
+    "start": "",
+    "end": "",
+    "status": "En progreso",
+    "comments": "Alejandro se encargó de todo el componente financiero de este proyecto. Debemos estar atentos al envío del concepto de DATIC."
+  },
+  {
+    "id": "1",
+    "task": "Manuales tableros. Proyectos y PDD",
+    "owner": "Sebastián",
+    "start": "",
+    "end": "",
+    "status": "Atrasada",
+    "comments": "30 días de atraso"
+  },
+  {
+    "id": "2",
+    "task": "Manuales tableros. Docentes",
+    "owner": "Sebastián",
+    "start": "29/7/2026",
+    "end": "",
+    "status": "En progreso",
+    "comments": "Incluir todo el paso a paso con los flujos."
+  },
+  {
+    "id": "3",
+    "task": "Manuales tableros. ICFES",
+    "owner": "Sebastián",
+    "start": "",
+    "end": "",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "4",
+    "task": "Mapa interactivo para los establecimientos educativos no oficiales",
+    "owner": "Sebastián",
+    "start": "29/7/2026",
+    "end": "28/08/2026",
+    "status": "En progreso",
+    "comments": ""
+  },
+  {
+    "id": "5",
+    "task": "Actualizar las notas técnicas de EduData",
+    "owner": "Sebastián",
+    "start": "24/7/2026",
+    "end": "",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Encontrar solución a fallos en la ETL y elaborar informe técnico",
+    "owner": "Todos",
+    "start": "05/08/2026",
+    "end": "25/08/2026",
+    "status": "Finalizada",
+    "comments": ""
+  },
+  {
+    "id": "2",
+    "task": "Documento técnico Modelos predictivos",
+    "owner": "Eduardo + María Isabel",
+    "start": "31/07/2026",
+    "end": "",
+    "status": "En progreso",
+    "comments": "Eduardo culminó el componente conceptual. María Isabel debe revisar. Eduardo está trabajando en la Metodología"
+  },
+  {
+    "id": "3,1",
+    "task": "Participación Premio de Innovación que INNPACTA 2026",
+    "owner": "Todos",
+    "start": "",
+    "end": "14/09/2026",
+    "status": "Sin iniciar",
+    "comments": "Leer las condiciones y escoger la categoría donde como entidad pública podemos participar."
+  },
+  {
+    "id": "3,2",
+    "task": "Participación Premio de Innovación que INNPACTA 2026",
+    "owner": "María Isabel",
+    "start": "05/08/2026",
+    "end": "28/08/2026",
+    "status": "Sin iniciar",
+    "comments": "Hablar con Beatriz Barona. Nota de EduData en las redes sociales."
+  },
+  {
+    "id": "4",
+    "task": "Módulo de 'accountability' en el tablero de Proyectos. El propósito es poder identificar el número de beneficiarios (estudiantes, docentes, sedes, etc.) por cada proyecto según la vigencia. Y proyectos por sede educativa",
+    "owner": "Sebastián",
+    "start": "",
+    "end": "",
+    "status": "Sin iniciar",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Realizar lectura Resumen EduData para CEPAL",
+    "owner": "Nini",
+    "start": "03/08/2026",
+    "end": "",
+    "status": "Atrasada",
+    "comments": ""
+  },
+  {
+    "id": "2",
+    "task": "Revisión oficios subsecreterarías--socialización EduData",
+    "owner": "Nini",
+    "start": "",
+    "end": "",
+    "status": "Sin iniciar",
+    "comments": ""
+  },
+  {
+    "id": "3",
+    "task": "Revisión convocatoria logo EduData",
+    "owner": "Nini",
+    "start": "",
+    "end": "",
+    "status": "Sin iniciar",
+    "comments": ""
+  },
+  {
+    "id": "1",
+    "task": "Revisión formato 6A SIMAT para compartir con los compañeros de Bancos",
+    "owner": "Todos",
+    "start": "",
+    "end": "",
+    "status": "Sin iniciar",
+    "comments": ""
+  }
+]

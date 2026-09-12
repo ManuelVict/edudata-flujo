@@ -9,40 +9,162 @@
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <span class="eyebrow">OBSERVATORIO DE LA EDUCACIÓN</span>
-      <h1>Edudata <strong>Flujo</strong></h1>
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"/>
+          <path d="M8 12h8M12 8v8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-eyebrow-row">
+          <span class="eyebrow">OBSERVATORIO DE LA EDUCACIÓN</span>
+          <span class="live-pill"><span class="live-pulse"></span>Operación Activa</span>
+        </div>
+        <h1>Edudata <strong>Flujo</strong></h1>
+      </div>
     </div>
-    <div class="period-control">
-      <label for="periodSelect">Periodo</label>
-      <select id="periodSelect" aria-label="Seleccionar periodo"></select>
+    <nav class="top-nav" role="tablist" aria-label="Módulos de la aplicación">
+      <button id="tabNavFlow" class="top-nav-tab active" data-view="flow" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm13 2h3v-2h-3v-2l-3 3 3 3v-2z"/></svg>
+        <span>Flujo de Bases</span>
+      </button>
+      <button id="tabNavActivities" class="top-nav-tab" data-view="activities" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        <span>Seguimiento de Actividades</span>
+        <span class="live-pulse-dot" title="Sincronizado con Google Sheets"></span>
+      </button>
+      <button id="tabNavTeam" class="top-nav-tab" data-view="team" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span>Equipo</span>
+      </button>
+    </nav>
+
+    <div class="header-controls">
+      <div class="period-control" id="headerPeriodControl">
+        <label for="periodSelect">Periodo:</label>
+        <div class="select-wrapper">
+          <select id="periodSelect" aria-label="Seleccionar periodo"></select>
+        </div>
+      </div>
+      <button id="btnResetTop" class="ghost-btn" title="Restablecer datos al estado inicial">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reiniciar</span>
+      </button>
     </div>
   </header>
 
   <main>
-    <section class="summary" aria-label="Resumen del periodo">
-      <article><span>Progreso general</span><strong id="overallProgress">0%</strong><div class="meter"><i id="overallBar"></i></div></article>
-      <article><span>Terminadas</span><strong id="doneCount">0</strong><small>actualizaciones cerradas</small></article>
-      <article><span>En curso</span><strong id="activeCount">0</strong><small>con actividad pendiente</small></article>
-      <article class="danger-card"><span>Requieren atención</span><strong id="attentionCount">0</strong><small>en espera o bloqueadas</small></article>
+    <!-- View 1: Flujo Operativo de Bases de Datos -->
+    <div id="viewFlow" class="view-content active">
+      <!-- Subview Switcher: Diagrama vs Matriz Anual -->
+      <div class="flow-subview-bar">
+        <div class="flow-subview-info">
+          <div class="brand-eyebrow-row">
+            <span class="eyebrow dark">MONITOREO DE BASES DE DATOS</span>
+            <span class="subview-count-badge">14 fuentes</span>
+          </div>
+          <h2 id="flowSubviewTitle">Seguimiento Operativo y Matriz Anual</h2>
+        </div>
+        <div class="flow-subview-toggle" role="tablist" aria-label="Modo de visualización de bases">
+          <button id="btnSubViewDiagram" class="subview-btn active" role="tab" aria-selected="true" title="Diagrama de flujo paso a paso del periodo seleccionado">
+            <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm13 2h3v-2h-3v-2l-3 3 3 3v-2z"/></svg>
+            <span>Diagrama de Flujo (Mensual)</span>
+          </button>
+          <button id="btnSubViewMatrix" class="subview-btn" role="tab" aria-selected="false" title="Matriz anual de seguimiento Enero - Diciembre de la hoja BASE">
+            <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H5v-4h4v4zm0-6H5V7h4v4zm6 6h-4v-4h4v4zm0-6h-4V7h4v4zm4 6h-4v-4h4v4zm0-6h-4V7h4v4z"/></svg>
+            <span>Matriz Anual (Ene - Dic)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Subview 1: Diagrama de Flujo Mensual (Lienzo interactivo) -->
+      <div id="flowDiagramSubView">
+        <section class="summary" aria-label="Resumen del periodo">
+      <article class="kpi-card progress-kpi">
+        <div class="kpi-head">
+          <span>Progreso general</span>
+          <span class="kpi-pill">Ponderado</span>
+        </div>
+        <div class="kpi-body">
+          <strong id="overallProgress">0%</strong>
+          <div class="meter"><i id="overallBar"></i></div>
+        </div>
+        <span class="kpi-foot">Promedio de bases activas</span>
+      </article>
+
+      <article class="kpi-card done-kpi">
+        <div class="kpi-head">
+          <span>Terminadas</span>
+          <span class="kpi-icon done">✓</span>
+        </div>
+        <div class="kpi-body">
+          <strong id="doneCount">0</strong>
+        </div>
+        <span class="kpi-foot">Actualizaciones cerradas</span>
+      </article>
+
+      <article class="kpi-card active-kpi">
+        <div class="kpi-head">
+          <span>En curso</span>
+          <span class="kpi-icon active">▶</span>
+        </div>
+        <div class="kpi-body">
+          <strong id="activeCount">0</strong>
+        </div>
+        <span class="kpi-foot">En gestión y procesamiento</span>
+      </article>
+
+      <article class="kpi-card attention-kpi">
+        <div class="kpi-head">
+          <span>Requieren atención</span>
+          <span class="kpi-icon attention">!</span>
+        </div>
+        <div class="kpi-body">
+          <strong id="attentionCount">0</strong>
+        </div>
+        <span class="kpi-foot">Bloqueadas o en espera</span>
+      </article>
     </section>
 
-    <section class="workspace">
-      <aside class="base-panel">
+    <section class="workspace" id="workspace">
+      <aside class="base-panel" id="basePanel">
         <div class="panel-title">
-          <div><span class="eyebrow dark">BASES</span><h2>Actualizaciones</h2></div>
-          <span id="baseCount" class="count-pill"></span>
+          <div><span class="eyebrow dark">FUENTES</span><h2>Bases de datos</h2></div>
+          <div class="panel-title-actions">
+            <span id="baseCount" class="count-pill"></span>
+            <button id="btnCollapseSidebar" class="sidebar-collapse-btn" title="Ocultar panel lateral (Z)" aria-label="Ocultar panel lateral">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+          </div>
         </div>
-        <label class="search"><span aria-hidden="true">⌕</span><input id="baseSearch" type="search" placeholder="Buscar base o tablero" /></label>
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="baseSearch" type="search" placeholder="Buscar base o tablero..." />
+          <kbd class="search-kbd" title="Atajo para buscar">Ctrl K</kbd>
+        </div>
+        <div class="filter-tabs" role="tablist">
+          <button class="filter-tab active" data-filter="all">Todas</button>
+          <button class="filter-tab" data-filter="active">En curso</button>
+          <button class="filter-tab" data-filter="attention">Atención</button>
+          <button class="filter-tab" data-filter="done">Cerradas</button>
+        </div>
         <div id="baseList" class="base-list"></div>
       </aside>
 
       <section class="flow-panel">
         <div class="flow-heading">
-          <div>
-            <span id="baseOrganism" class="eyebrow dark"></span>
-            <h2 id="baseTitle"></h2>
-            <p id="baseMeta"></p>
+          <div class="flow-heading-left">
+            <button id="btnRestoreSidebar" class="restore-sidebar-btn" title="Mostrar bases de datos (Z)" aria-label="Mostrar bases" hidden>
+              <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+              <span>Mostrar bases</span>
+              <kbd class="zen-kbd">Z</kbd>
+            </button>
+            <div>
+              <span id="baseOrganism" class="eyebrow dark"></span>
+              <h2 id="baseTitle"></h2>
+              <p id="baseMeta"></p>
+            </div>
           </div>
           <div id="healthBadge" class="health-badge"></div>
         </div>
@@ -53,8 +175,200 @@
         </div>
 
         <div id="flowContent">
-          <div class="flow-scroll">
-            <div id="flowDiagram" class="flow-diagram" aria-label="Diagrama de actualización"></div>
+          <div class="flow-canvas-wrapper" id="flowCanvasWrapper">
+            <div class="canvas-header-bar">
+              <div class="canvas-legend">
+                <span><i class="dot done"></i> Completado</span>
+                <span><i class="dot current pulse"></i> Etapa actual</span>
+                <span><i class="dot waiting"></i> En espera</span>
+                <span><i class="dot blocked"></i> Bloqueado</span>
+                <span><i class="dot branch"></i> Ruta alternativa</span>
+              </div>
+              <div class="canvas-hint">
+                <span>💡 Arrastra para mover el lienzo · Usa la rueda para hacer zoom</span>
+              </div>
+            </div>
+
+            <div class="canvas-container" id="canvasContainer">
+              <!-- Floating Professional Toolbar -->
+              <div class="canvas-toolbar" role="toolbar" aria-label="Herramientas profesionales del diagrama">
+                <div class="toolbar-group">
+                  <button id="btnToolSelect" class="tool-btn active" title="Herramienta de Selección (V)" aria-label="Seleccionar">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M4 2l16 11.5-8.5 1.5-4 7-2.5-1.5 4-7L4 2z"/></svg>
+                  </button>
+                  <button id="btnToolHand" class="tool-btn" title="Herramienta Mano / Desplazamiento (H / Espacio)" aria-label="Mover lienzo">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M13 3a1 1 0 0 0-2 0v8H9.5V5a1 1 0 0 0-2 0v7H6V7a1 1 0 0 0-2 0v8c0 4.418 3.582 8 8 8s8-3.582 8-8V9a1 1 0 0 0-2 0v3h-1.5V4a1 1 0 0 0-2 0v7H13V3z"/></svg>
+                  </button>
+                </div>
+
+                <div class="toolbar-divider"></div>
+
+                <div class="toolbar-group">
+                  <button id="btnZoomIn" class="tool-btn" title="Acercar (+)" aria-label="Acercar">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                  </button>
+                  <button id="btnZoomReset" class="tool-btn zoom-indicator" title="Restablecer zoom al 100%" aria-label="Zoom 100%">
+                    <span id="zoomPercent">100%</span>
+                  </button>
+                  <button id="btnZoomOut" class="tool-btn" title="Alejar (-)" aria-label="Alejar">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 13H5v-2h14v2z"/></svg>
+                  </button>
+                </div>
+
+                <div class="toolbar-divider"></div>
+
+                <div class="toolbar-group">
+                  <button id="btnFitView" class="tool-btn" title="Ajustar flujo a la pantalla (F)" aria-label="Ajustar flujo a la pantalla">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2z"/></svg>
+                    <span class="btn-label">Ajustar</span>
+                  </button>
+                  <button id="btnFocusCurrent" class="tool-btn highlight" title="Centrar en etapa actual (🎯)" aria-label="Centrar etapa actual">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                    <span class="btn-label">Etapa actual</span>
+                  </button>
+                  <button id="btnZenMode" class="tool-btn zen-btn" title="Modo Concentración (Z) - Ocultar panel lateral" aria-label="Modo Concentración">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-7 14H5V6h7v12zm7 0h-5V6h5v12z"/></svg>
+                    <span class="btn-label">Concentración</span>
+                  </button>
+                  <button id="btnGridCycle" class="tool-btn" title="Alternar trama de fondo (Puntos / Cuadrícula / Limpio)" aria-label="Cambiar fondo">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/></svg>
+                  </button>
+                </div>
+
+                <div class="toolbar-divider"></div>
+
+                <div class="toolbar-group">
+                  <button id="btnExportSvg" class="tool-btn" title="Descargar como vector SVG" aria-label="Exportar SVG">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    <span class="btn-label">SVG</span>
+                  </button>
+                  <button id="btnExportPng" class="tool-btn" title="Descargar imagen PNG en alta definición" aria-label="Exportar PNG">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                    <span class="btn-label">PNG</span>
+                  </button>
+                  <button id="btnFullscreen" class="tool-btn" title="Pantalla completa del diagrama" aria-label="Pantalla completa">
+                    <svg id="fullscreenIcon" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Viewport & Stage -->
+              <div class="canvas-viewport is-select-mode" id="canvasViewport" tabindex="0" role="region" aria-label="Lienzo interactivo del diagrama de flujo">
+                <div class="canvas-grid-bg grid-dots" id="canvasGridBg"></div>
+                <div class="canvas-stage" id="canvasStage">
+                  <div id="flowDiagram" class="flow-diagram"></div>
+                </div>
+              </div>
+
+              <!-- Skeleton & Loading Overlay on Base Switch -->
+              <div id="canvasSkeleton" class="canvas-skeleton" hidden aria-live="polite">
+                <div class="skeleton-badge">
+                  <div class="skeleton-spinner"></div>
+                  <span>Cargando flujo de <strong id="skeletonBaseName"></strong>...</span>
+                </div>
+                <div class="skeleton-canvas-body">
+                  <svg class="skeleton-svg" viewBox="0 0 1960 590" preserveAspectRatio="xMidYMid meet">
+                    <line x1="90" y1="270" x2="1840" y2="270" stroke="#cbd5e1" stroke-width="6" stroke-dasharray="10 8" opacity="0.5"/>
+                    <rect x="14" y="232" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="202" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="364" y="232" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="552" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="714" y="232" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="902" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1077" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1252" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1414" y="232" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1602" y="232" width="126" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1764" y="232" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <!-- Skeleton Branches -->
+                    <rect x="189" y="424" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="539" y="40" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="889" y="424" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1064" y="40" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1239" y="424" width="152" height="76" rx="12" class="shimmer-rect"/>
+                    <rect x="1589" y="40" width="152" height="76" rx="12" class="shimmer-rect"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Floating Node Quick Action Bar (Over Selected Node) -->
+              <div id="nodeActionBar" class="node-action-bar" hidden>
+                <div class="action-bar-info">
+                  <span id="actNodeBadge" class="action-bar-badge"></span>
+                  <strong id="actNodeTitle"></strong>
+                </div>
+                <div class="action-bar-buttons">
+                  <button id="actSetCurrent" class="act-btn primary" title="Mover avance de la base a esta etapa">Saltar aquí</button>
+                  <button id="actReportBlock" class="act-btn danger" title="Reportar bloqueo en esta etapa">Bloqueo</button>
+                  <button id="actOpenInspector" class="act-btn secondary" title="Ver ficha técnica completa">Ficha</button>
+                  <button id="actCloseBar" class="act-close" title="Deseleccionar">×</button>
+                </div>
+              </div>
+
+              <!-- Slide-over Technical Inspector Drawer -->
+              <aside id="nodeInspector" class="node-inspector" hidden>
+                <div class="inspector-header">
+                  <div>
+                    <span id="inspBadge" class="inspector-badge">ETAPA</span>
+                    <h3 id="inspTitle">Inspección de Etapa</h3>
+                  </div>
+                  <button id="inspClose" class="inspector-close" aria-label="Cerrar ficha">×</button>
+                </div>
+                <div class="inspector-body">
+                  <div class="inspector-section">
+                    <label>Propósito & Operación</label>
+                    <p id="inspDesc"></p>
+                  </div>
+                  <div class="inspector-grid">
+                    <div>
+                      <label>Responsable</label>
+                      <strong id="inspOwner"></strong>
+                    </div>
+                    <div>
+                      <label>Estado en esta base</label>
+                      <span id="inspStatusPill" class="status-pill"></span>
+                    </div>
+                  </div>
+                  <div class="inspector-section">
+                    <label>Insumos & Precondiciones</label>
+                    <ul id="inspInputs" class="inspector-list"></ul>
+                  </div>
+                  <div class="inspector-section">
+                    <label>Entregables & Salida</label>
+                    <ul id="inspOutputs" class="inspector-list"></ul>
+                  </div>
+                  <div class="inspector-actions">
+                    <button id="inspAdvanceBtn" class="primary full-width">Completar etapa</button>
+                    <button id="inspBlockBtn" class="secondary full-width">Reportar incidencia</button>
+                  </div>
+                </div>
+              </aside>
+
+              <!-- Minimap / Radar -->
+              <div class="canvas-minimap" id="canvasMinimap">
+                <div class="minimap-header">
+                  <span class="minimap-title"><span class="radar-live-dot"></span>RADAR</span>
+                  <button id="btnToggleMinimap" class="minimap-toggle" title="Minimizar / Expandir radar">▾</button>
+                </div>
+                <div class="minimap-body" id="minimapBody">
+                  <svg id="minimapSvg" class="minimap-svg" viewBox="0 0 1960 590" preserveAspectRatio="xMidYMid meet"></svg>
+                  <div id="minimapWindow" class="minimap-window"></div>
+                </div>
+              </div>
+
+              <!-- Node Hover Tooltip -->
+              <div id="nodeTooltip" class="node-tooltip" hidden>
+                <div class="tooltip-header">
+                  <span class="tooltip-badge" id="ttBadge"></span>
+                </div>
+                <h4 id="ttTitle"></h4>
+                <p id="ttDesc"></p>
+                <div class="tooltip-meta">
+                  <div><strong>Responsable:</strong> <span id="ttOwner"></span></div>
+                  <div><strong>Estado:</strong> <span id="ttStatus"></span></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="detail-grid">
@@ -80,7 +394,529 @@
           </div>
         </div>
       </section>
-    </section>
+      </div>
+      <!-- End Subview 1: flowDiagramSubView -->
+
+      <!-- Subview 2: Matriz Anual de Bases de Datos (Ene - Dic) -->
+      <div id="flowMatrixSubView" class="flow-matrix-subview" hidden>
+        <!-- Annual Matrix KPI Cards -->
+        <section class="act-kpi-summary annual-kpi-summary" aria-label="Resumen anual de bases de datos">
+          <article class="kpi-card">
+            <div class="kpi-head">
+              <span>Bases en Seguimiento</span>
+              <span class="kpi-icon default">📁</span>
+            </div>
+            <div class="kpi-body">
+              <strong id="annualKpiTotal">14</strong>
+            </div>
+            <span class="kpi-foot">Fuentes maestras registradas</span>
+          </article>
+
+          <article class="kpi-card act-kpi-done">
+            <div class="kpi-head">
+              <span>Carga a Drive del Lago</span>
+              <span class="kpi-icon done">☁️</span>
+            </div>
+            <div class="kpi-body">
+              <strong id="annualKpiDrive">9</strong>
+            </div>
+            <span class="kpi-foot">64% van al repositorio central</span>
+          </article>
+
+          <article class="kpi-card act-kpi-progress">
+            <div class="kpi-head">
+              <span>Actualizaciones Registradas</span>
+              <span class="kpi-icon active">✓</span>
+            </div>
+            <div class="kpi-body">
+              <strong id="annualKpiUpdated">54</strong>
+            </div>
+            <span class="kpi-foot">Cierres exitosos en el año</span>
+          </article>
+
+          <article class="kpi-card act-kpi-delayed">
+            <div class="kpi-head">
+              <span>En Gestión / Solicitud</span>
+              <span class="kpi-icon attention">⏳</span>
+            </div>
+            <div class="kpi-body">
+              <strong id="annualKpiRequests">4</strong>
+            </div>
+            <span class="kpi-foot">Trámites abiertos con custodios</span>
+          </article>
+        </section>
+
+        <!-- Annual Matrix Table Workspace -->
+        <section class="annual-matrix-workspace">
+          <div class="annual-matrix-heading">
+            <div class="annual-matrix-title-wrap">
+              <span class="eyebrow dark">HOJA BASE · MAPA ANUAL DE CUMPLIMIENTO</span>
+              <h3>Matriz Anual de Bases de Datos (Enero a Diciembre)</h3>
+              <p>Monitoreo histórico consolidado del estado de actualización mensual de las 14 bases oficiales de EduData.</p>
+            </div>
+
+            <div class="annual-matrix-legend">
+              <span class="legend-pill status-actualizada"><span class="legend-dot"></span> Actualizada</span>
+              <span class="legend-pill status-solicitud"><span class="legend-dot"></span> Se hizo solicitud</span>
+              <span class="legend-pill status-no_aplica"><span class="legend-dot"></span> No existe base en ese mes</span>
+              <span class="legend-pill status-no_cut"><span class="legend-dot dot-no-cut"></span> Sin corte programado</span>
+              <span class="legend-pill status-empty"><span class="legend-dot"></span> Pendiente / Futuro</span>
+            </div>
+          </div>
+
+          <!-- Periodicities Distribution & Quick Filters Bar -->
+          <div class="periodicity-distribution-widget" id="periodicityDistributionWidget">
+            <div class="periodicity-dist-header">
+              <div class="dist-header-title">
+                <span class="eyebrow dark">FRECUENCIA DE CORTE DE LAS BASES</span>
+                <h4>Distribución por Periodicidad de Actualización</h4>
+                <p>Cada base cuenta con una periodicidad reglamentaria. Los meses sin corte programado están identificados para evitar falsas alertas.</p>
+              </div>
+              <div class="periodicity-filter-chips" id="periodicityFilterChips">
+                <button class="periodicity-chip active" data-periodicity="all" title="Ver todas las 14 bases">
+                  <span class="chip-dot all"></span>
+                  <span class="chip-label">Todas</span>
+                  <span class="chip-count" id="chipCountAll">14</span>
+                </button>
+                <button class="periodicity-chip" data-periodicity="mensual" title="Bases con reporte mensual regular (12 cortes/año)">
+                  <span class="chip-dot mensual"></span>
+                  <span class="chip-label">🟣 Mensual</span>
+                  <span class="chip-count" id="chipCountMensual">4</span>
+                </button>
+                <button class="periodicity-chip" data-periodicity="lectivo" title="Bases escolares activas durante calendario escolar">
+                  <span class="chip-dot lectivo"></span>
+                  <span class="chip-label">🔵 Mensual Lectivo</span>
+                  <span class="chip-count" id="chipCountLectivo">2</span>
+                </button>
+                <button class="periodicity-chip" data-periodicity="trimestral" title="Bases con corte por hitos trimestrales (Ene, Abr, Jul, Oct)">
+                  <span class="chip-dot trimestral"></span>
+                  <span class="chip-label">🟠 Trimestral</span>
+                  <span class="chip-count" id="chipCountTrimestral">5</span>
+                </button>
+                <button class="periodicity-chip" data-periodicity="anual" title="Bases con consolidación anual (Pruebas Saber / IDESC)">
+                  <span class="chip-dot anual"></span>
+                  <span class="chip-label">🟢 Anual / Semestral</span>
+                  <span class="chip-count" id="chipCountAnual">3</span>
+                </button>
+              </div>
+            </div>
+            <!-- Proportional Visual Segmented Bar -->
+            <div class="periodicity-segmented-bar" id="periodicitySegmentedBar" role="progressbar" aria-label="Distribución gráfica de periodicidades">
+              <div class="seg-item seg-mensual" style="width: 28.57%;" title="Mensual: 4 bases (28.6%) · SIMAT, HUMANO, EJECUCIONES, Notas">
+                <span class="seg-text">🟣 Mensual (4)</span>
+              </div>
+              <div class="seg-item seg-lectivo" style="width: 14.29%;" title="Mensual Lectivo: 2 bases (14.3%) · PAE, SIMPADE">
+                <span class="seg-text">🔵 Lectivo (2)</span>
+              </div>
+              <div class="seg-item seg-trimestral" style="width: 35.71%;" title="Trimestral: 5 bases (35.7%) · DUE SEDES, DUE EST., 1S, 3S, 4S">
+                <span class="seg-text">🟠 Trimestral (5)</span>
+              </div>
+              <div class="seg-item seg-anual" style="width: 21.43%;" title="Anual / Semestral: 3 bases (21.4%) · ICFES Clasif., Territorial, IDESC">
+                <span class="seg-text">🟢 Anual (3)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="annual-matrix-toolbar">
+            <div class="act-search-box">
+              <span class="search-icon">⌕</span>
+              <input id="matrixSearchInput" type="search" placeholder="Buscar base, organismo o custodio..." />
+            </div>
+
+            <div class="act-filter-group">
+              <label for="matrixPeriodicityFilter">Periodicidad:</label>
+              <select id="matrixPeriodicityFilter">
+                <option value="all">Todas las periodicidades (14)</option>
+                <option value="mensual">Mensual (4)</option>
+                <option value="lectivo">Mensual Lectivo (2)</option>
+                <option value="trimestral">Trimestral (5)</option>
+                <option value="anual">Anual / Semestral (3)</option>
+              </select>
+            </div>
+
+            <div class="act-filter-group">
+              <label for="matrixOrgFilter">Organismo:</label>
+              <select id="matrixOrgFilter">
+                <option value="all">Todos los organismos</option>
+              </select>
+            </div>
+
+            <label class="matrix-checkbox-filter">
+              <input type="checkbox" id="matrixDriveOnlyCheck" />
+              <span>Solo con carga a Drive del lago</span>
+            </label>
+
+            <span class="matrix-filter-count" id="matrixFilterCount">14 bases</span>
+          </div>
+
+          <div class="annual-matrix-table-container">
+            <table class="annual-matrix-table">
+              <thead>
+                <tr>
+                  <th class="col-sticky-base">Base de Datos</th>
+                  <th style="min-width: 140px;">Periodicidad</th>
+                  <th>Organismo</th>
+                  <th>Custodio de Información</th>
+                  <th style="text-align: center;">Drive Lago</th>
+                  <th class="col-month">Ene</th>
+                  <th class="col-month">Feb</th>
+                  <th class="col-month">Mar</th>
+                  <th class="col-month">Abr</th>
+                  <th class="col-month">May</th>
+                  <th class="col-month">Jun</th>
+                  <th class="col-month">Jul</th>
+                  <th class="col-month">Ago</th>
+                  <th class="col-month">Sep</th>
+                  <th class="col-month">Oct</th>
+                  <th class="col-month">Nov</th>
+                  <th class="col-month">Dic</th>
+                  <th style="text-align: center; min-width: 110px;">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="annualMatrixTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <!-- End Subview 2: flowMatrixSubView -->
+    </div>
+    <!-- End View 1: viewFlow -->
+
+    <!-- View 2: Seguimiento de Actividades (Google Sheets en vivo) -->
+    <div id="viewActivities" class="view-content" hidden>
+      <section class="activities-header">
+        <div class="act-header-info">
+          <div class="act-header-eyebrow-row">
+            <span class="eyebrow dark">OBSERVATORIO DE LA EDUCACIÓN · CRONOGRAMA</span>
+            <span class="live-pill sheets-pill"><span class="live-pulse"></span>Google Sheets en Vivo</span>
+          </div>
+          <h2>Seguimiento de Actividades del Equipo</h2>
+          <p>Monitoreo operativo de manuales, custodios de información, acuerdos y tableros sincronizado con la hoja oficial.</p>
+        </div>
+        <div class="act-header-actions">
+          <div class="sync-status-box" title="Sincronización automática periódica activa">
+            <span class="sync-dot live-pulse-dot"></span>
+            <div class="sync-status-text-wrap">
+              <span id="actSyncTime" class="sync-time-text">Sincronizado: Conectado</span>
+              <span class="sync-auto-badge">Auto · cada 4 h</span>
+            </div>
+          </div>
+          <button id="btnSyncSheets" class="sync-btn" title="Actualizar datos en vivo desde Google Sheets">
+            <svg id="syncIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-1.19"/>
+            </svg>
+            <span id="syncBtnText">Sincronizar</span>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTdwoOQjy8dccue3tQnaDbQv5os6SptjZJ1risMayUjT99z2JCr683c_V9MzGMM2qBEeR6ECVDD4TES/pubhtml" target="_blank" rel="noopener noreferrer" class="sheet-external-btn" title="Abrir Google Sheet oficial en nueva pestaña">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            <span>Ver Sheet ↗</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- KPI Summary Cards for Activities -->
+      <section class="act-kpi-summary" aria-label="Resumen de actividades">
+        <article class="kpi-card act-kpi-total">
+          <div class="kpi-head">
+            <span>Total Actividades</span>
+            <span class="kpi-icon default">#</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="actCountTotal">0</strong>
+          </div>
+          <span class="kpi-foot">Tareas registradas en la hoja</span>
+        </article>
+
+        <article class="kpi-card act-kpi-done">
+          <div class="kpi-head">
+            <span>Finalizadas</span>
+            <span class="kpi-icon done">✓</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="actCountDone">0</strong>
+          </div>
+          <span class="kpi-foot" id="actPercentDone">0% completado</span>
+        </article>
+
+        <article class="kpi-card act-kpi-progress">
+          <div class="kpi-head">
+            <span>En Progreso</span>
+            <span class="kpi-icon active">▶</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="actCountProgress">0</strong>
+          </div>
+          <span class="kpi-foot">En desarrollo activo</span>
+        </article>
+
+        <article class="kpi-card act-kpi-delayed">
+          <div class="kpi-head">
+            <span>Atrasadas</span>
+            <span class="kpi-icon attention">!</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="actCountDelayed">0</strong>
+          </div>
+          <span class="kpi-foot">Requieren atención</span>
+        </article>
+
+        <article class="kpi-card act-kpi-notstarted">
+          <div class="kpi-head">
+            <span>Sin Iniciar</span>
+            <span class="kpi-icon waiting">⋯</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="actCountNotStarted">0</strong>
+          </div>
+          <span class="kpi-foot">Pendientes en cronograma</span>
+        </article>
+      </section>
+
+      <!-- Activities Workspace -->
+      <section class="act-workspace">
+        <div class="act-toolbar">
+          <div class="act-search-box">
+            <span class="search-icon">⌕</span>
+            <input id="actSearchInput" type="search" placeholder="Buscar actividad, entregable, nota..." />
+          </div>
+
+          <div class="act-filter-group">
+            <label for="actOwnerFilter">Responsable:</label>
+            <select id="actOwnerFilter">
+              <option value="all">Todos los responsables</option>
+            </select>
+          </div>
+
+          <div class="act-status-tabs" role="tablist">
+            <button class="act-tab active" data-status="all">Todas</button>
+            <button class="act-tab" data-status="en progreso">En progreso</button>
+            <button class="act-tab" data-status="atrasada">Atrasadas</button>
+            <button class="act-tab" data-status="sin iniciar">Sin iniciar</button>
+            <button class="act-tab" data-status="finalizada">Finalizadas</button>
+          </div>
+
+          <div class="act-view-mode-group">
+            <button id="btnModeKanban" class="view-mode-btn active" title="Vista Tablero Kanban">
+              <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M3 3h5v18H3V3zm7 0h5v11h-5V3zm7 0h5v15h-5V3z"/></svg>
+              <span>Kanban</span>
+            </button>
+            <button id="btnModeTable" class="view-mode-btn" title="Vista Tabla Detallada">
+              <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M3 4h18v16H3V4zm2 4v4h6V8H5zm8 0v4h6V8h-6zm-8 6v4h6v-4H5zm8 0v4h6v-4h-6z"/></svg>
+              <span>Tabla</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Kanban Board View -->
+        <div id="actKanbanView" class="kanban-board">
+          <div class="kanban-column col-notstarted">
+            <div class="kanban-col-head">
+              <div class="col-title-wrap"><span class="kanban-dot notstarted"></span><h3>Sin Iniciar</h3></div>
+              <span id="badgeColNotStarted" class="kanban-count">0</span>
+            </div>
+            <div id="colNotStartedList" class="kanban-cards-list"></div>
+          </div>
+
+          <div class="kanban-column col-inprogress">
+            <div class="kanban-col-head">
+              <div class="col-title-wrap"><span class="kanban-dot inprogress"></span><h3>En Progreso</h3></div>
+              <span id="badgeColInProgress" class="kanban-count">0</span>
+            </div>
+            <div id="colInProgressList" class="kanban-cards-list"></div>
+          </div>
+
+          <div class="kanban-column col-delayed">
+            <div class="kanban-col-head">
+              <div class="col-title-wrap"><span class="kanban-dot delayed"></span><h3>Atrasada</h3></div>
+              <span id="badgeColDelayed" class="kanban-count">0</span>
+            </div>
+            <div id="colDelayedList" class="kanban-cards-list"></div>
+          </div>
+
+          <div class="kanban-column col-done">
+            <div class="kanban-col-head">
+              <div class="col-title-wrap"><span class="kanban-dot done"></span><h3>Finalizada</h3></div>
+              <span id="badgeColDone" class="kanban-count">0</span>
+            </div>
+            <div id="colDoneList" class="kanban-cards-list"></div>
+          </div>
+        </div>
+
+        <!-- Detailed Table View -->
+        <div id="actTableView" class="table-container" hidden>
+          <table class="act-table">
+            <thead>
+              <tr>
+                <th style="width: 48px;">#</th>
+                <th>Actividad</th>
+                <th style="width: 180px;">Responsable(s)</th>
+                <th style="width: 105px;">Inicio</th>
+                <th style="width: 105px;">Tentativa</th>
+                <th style="width: 125px;">Estado</th>
+                <th>Comentarios / Observaciones</th>
+              </tr>
+            </thead>
+            <tbody id="actTableBody"></tbody>
+          </table>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- View 3: Asignaciones por Integrante del Equipo -->
+    <div id="viewTeam" class="view-content" hidden>
+      <section class="activities-header">
+        <div class="act-header-info">
+          <div class="act-header-eyebrow-row">
+            <span class="eyebrow dark">OBSERVATORIO DE LA EDUCACIÓN · TALENTO HUMANO</span>
+            <span class="team-active-members-count" id="teamMembersCountBadge">7 integrantes</span>
+          </div>
+          <h2>Asignaciones y Carga de Trabajo del Equipo</h2>
+          <p>Seguimiento de responsabilidades, avance individual y entregables de cada integrante del equipo EduData.</p>
+        </div>
+        <div class="act-header-actions">
+          <div class="sync-status-box" title="Sincronización automática periódica activa">
+            <span class="sync-dot live-pulse-dot"></span>
+            <div class="sync-status-text-wrap">
+              <span id="teamSyncTime" class="sync-time-text">Sincronizado: Conectado</span>
+              <span class="sync-auto-badge">Auto · cada 4 h</span>
+            </div>
+          </div>
+          <button id="btnSyncTeam" class="sync-btn" title="Actualizar datos en vivo desde Google Sheets">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-1.19"/>
+            </svg>
+            <span>Sincronizar</span>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTdwoOQjy8dccue3tQnaDbQv5os6SptjZJ1risMayUjT99z2JCr683c_V9MzGMM2qBEeR6ECVDD4TES/pubhtml" target="_blank" rel="noopener noreferrer" class="sheet-external-btn" title="Abrir Google Sheet oficial en nueva pestaña">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            <span>Ver Sheet ↗</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- KPI Summary Cards for Team -->
+      <section class="act-kpi-summary" aria-label="Resumen del equipo">
+        <article class="kpi-card">
+          <div class="kpi-head">
+            <span>Integrantes / Grupos</span>
+            <span class="kpi-icon default">👥</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="teamKpiMembers">0</strong>
+          </div>
+          <span class="kpi-foot">Con asignaciones registradas</span>
+        </article>
+
+        <article class="kpi-card act-kpi-total">
+          <div class="kpi-head">
+            <span>Total Asignaciones</span>
+            <span class="kpi-icon default">#</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="teamKpiTotal">0</strong>
+          </div>
+          <span class="kpi-foot">Carga total distribuida</span>
+        </article>
+
+        <article class="kpi-card act-kpi-done">
+          <div class="kpi-head">
+            <span>Completadas</span>
+            <span class="kpi-icon done">✓</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="teamKpiDone">0</strong>
+          </div>
+          <span class="kpi-foot" id="teamKpiPercent">0% completado</span>
+        </article>
+
+        <article class="kpi-card act-kpi-progress">
+          <div class="kpi-head">
+            <span>En Progreso</span>
+            <span class="kpi-icon active">▶</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="teamKpiProg">0</strong>
+          </div>
+          <span class="kpi-foot">Actividades en curso</span>
+        </article>
+
+        <article class="kpi-card act-kpi-delayed">
+          <div class="kpi-head">
+            <span>Atrasadas / Alertas</span>
+            <span class="kpi-icon attention">!</span>
+          </div>
+          <div class="kpi-body">
+            <strong id="teamKpiDelay">0</strong>
+          </div>
+          <span class="kpi-foot">Requieren seguimiento</span>
+        </article>
+      </section>
+
+      <!-- Executive Summary Table Section ("esa tablita") -->
+      <section class="team-table-section">
+        <div class="team-section-heading">
+          <div class="team-section-title">
+            <span class="eyebrow dark">TABLA EJECUTIVA</span>
+            <h3>Resumen de Distribución Actual del Equipo</h3>
+          </div>
+          <div class="team-table-legend">
+            <span class="legend-item"><span class="legend-dot done"></span> Finalizadas</span>
+            <span class="legend-item"><span class="legend-dot prog"></span> En Progreso</span>
+            <span class="legend-item"><span class="legend-dot delay"></span> Atrasadas</span>
+            <span class="legend-item"><span class="legend-dot wait"></span> Sin Iniciar</span>
+          </div>
+        </div>
+
+        <div class="table-container team-table-container">
+          <table class="act-table team-summary-table">
+            <thead>
+              <tr>
+                <th style="min-width: 220px;">Integrante</th>
+                <th style="text-align: center; width: 140px;">Tareas Asignadas</th>
+                <th style="text-align: center; width: 110px;">Finalizadas</th>
+                <th style="text-align: center; width: 110px;">En Progreso</th>
+                <th style="text-align: center; width: 110px;">Atrasadas</th>
+                <th style="text-align: center; width: 110px;">Sin Iniciar</th>
+                <th style="min-width: 190px;">% Avance</th>
+                <th style="text-align: center; width: 140px;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="teamSummaryTableBody"></tbody>
+            <tfoot id="teamSummaryTableFoot"></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- Member Detail Cards Section -->
+      <section class="team-cards-section">
+        <div class="team-section-heading">
+          <div class="team-section-title">
+            <span class="eyebrow dark">DETALLE DE ACTIVIDADES</span>
+            <h3>Tarjetas Operativas por Integrante</h3>
+          </div>
+          <div class="team-view-stats-summary" id="teamSummaryPills"></div>
+        </div>
+
+        <div class="act-toolbar" style="margin-bottom: 16px;">
+          <div class="act-search-box">
+            <span class="search-icon">⌕</span>
+            <input id="teamSearchInput" type="search" placeholder="Buscar por integrante o tarea..." />
+          </div>
+
+          <div class="act-status-tabs" id="teamStatusTabs" role="tablist">
+            <button class="act-tab active" data-team-filter="all">Todos</button>
+            <button class="act-tab" data-team-filter="delay">Con alertas atrasadas</button>
+            <button class="act-tab" data-team-filter="prog">Con tareas activas</button>
+            <button class="act-tab" data-team-filter="done">100% al día</button>
+          </div>
+        </div>
+
+        <div id="teamMembersGrid" class="team-members-grid"></div>
+      </section>
+    </div>
   </main>
 
   <dialog id="blockDialog">
