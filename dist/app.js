@@ -2364,7 +2364,27 @@ class ActivitiesManager {
 
     if (cached) {
       try {
-        this.items = JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        const isCorrupt = !Array.isArray(parsed) || parsed.length === 0 || parsed.some((it) => 
+          !it || 
+          (it.id && (it.id.includes("<") || it.id.toLowerCase().includes("doctype"))) ||
+          (it.task && (it.task.includes("<") || it.task.includes("html>") || it.task.trim() === ""))
+        );
+
+        if (isCorrupt) {
+          console.warn("[EduData] Purgando caché corrupta de actividades (HTML detectado en lugar de datos)");
+          if (typeof localStorage !== "undefined") {
+            try {
+              localStorage.removeItem("edudata_activities_cache");
+              localStorage.removeItem("edudata_activities_synced_at");
+            } catch (e) {}
+          }
+          cached = null;
+          lastSynced = null;
+          this.items = [...DEFAULT_ACTIVITIES_SNAPSHOT];
+        } else {
+          this.items = parsed;
+        }
       } catch (e) {
         this.items = [...DEFAULT_ACTIVITIES_SNAPSHOT];
       }
@@ -2558,11 +2578,25 @@ class ActivitiesManager {
     const nginxUrl = NGINX_PROXY_URL + (NGINX_PROXY_URL.includes("?") ? "&" : "?") + cb;
     const directUrl = GOOGLE_SHEETS_CSV_URL + (GOOGLE_SHEETS_CSV_URL.includes("?") ? "&" : "?") + cb;
 
+    const isValidCsv = (txt) => {
+      if (!txt || typeof txt !== "string") return false;
+      const t = txt.trim().toLowerCase();
+      if (t.startsWith("<!doctype") || t.startsWith("<html") || t.startsWith("<?xml") || t.startsWith("<head") || t.startsWith("<body")) {
+        return false;
+      }
+      const lines = txt.split("\n").filter((l) => l.trim().length > 0);
+      if (lines.length < 2) return false;
+      return lines[0].includes(",") || lines[0].includes(";");
+    };
+
     // Strategy 1: Nginx proxy (/api/sheets-sync)
     try {
       const res = await fetch(nginxUrl, { cache: "no-store" });
       if (res.ok) {
-        rawCsv = await res.text();
+        const text = await res.text();
+        if (isValidCsv(text)) {
+          rawCsv = text;
+        }
       }
     } catch (e) {}
 
@@ -2571,7 +2605,10 @@ class ActivitiesManager {
       try {
         const res = await fetch(directUrl, { cache: "no-store" });
         if (res.ok) {
-          rawCsv = await res.text();
+          const text = await res.text();
+          if (isValidCsv(text)) {
+            rawCsv = text;
+          }
         }
       } catch (e) {}
     }
@@ -2582,7 +2619,10 @@ class ActivitiesManager {
         const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(directUrl);
         const res = await fetch(proxyUrl, { cache: "no-store" });
         if (res.ok) {
-          rawCsv = await res.text();
+          const text = await res.text();
+          if (isValidCsv(text)) {
+            rawCsv = text;
+          }
         }
       } catch (e) {}
     }
@@ -2590,7 +2630,12 @@ class ActivitiesManager {
     if (rawCsv && rawCsv.trim().length > 0) {
       try {
         const parsedRows = parseCSV(rawCsv);
-        const dataRows = parsedRows.slice(1).filter((r) => r[0] && r[0].trim() !== "");
+        // Valid rows must have at least 2 columns, id cannot be HTML tag, and task must not be empty or HTML
+        const dataRows = parsedRows.slice(1).filter((r) => 
+          r && r.length >= 2 && 
+          r[0] && r[0].trim() !== "" && !r[0].includes("<") && 
+          r[1] && r[1].trim() !== "" && !r[1].includes("<")
+        );
         const newItems = dataRows.map((r) => {
           return {
             id: r[0]?.trim() || "",

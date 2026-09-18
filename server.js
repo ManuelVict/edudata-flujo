@@ -18,6 +18,42 @@ try {
   useExpress = false;
 }
 
+const https = require('https');
+const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTdwoOQjy8dccue3tQnaDbQv5os6SptjZJ1risMayUjT99z2JCr683c_V9MzGMM2qBEeR6ECVDD4TES/pub?gid=1312885523&single=true&output=csv";
+
+function proxyGoogleSheets(clientRes) {
+  function getWithRedirect(targetUrl, maxRedirects = 5) {
+    if (maxRedirects <= 0) {
+      clientRes.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+      clientRes.end('Demasiados redireccionamientos al conectar con Google Sheets');
+      return;
+    }
+    const req = https.get(targetUrl, (sheetsRes) => {
+      if (sheetsRes.statusCode >= 300 && sheetsRes.statusCode < 400 && sheetsRes.headers.location) {
+        getWithRedirect(sheetsRes.headers.location, maxRedirects - 1);
+        return;
+      }
+      clientRes.writeHead(sheetsRes.statusCode || 200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      });
+      sheetsRes.pipe(clientRes);
+    });
+    req.on('error', (err) => {
+      console.error('[EduData Flujo] Error al conectar con Google Sheets:', err.message);
+      clientRes.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+      clientRes.end('Error al conectar con Google Sheets');
+    });
+    req.setTimeout(12000, () => {
+      req.destroy();
+      clientRes.writeHead(504, { 'Content-Type': 'text/plain; charset=utf-8' });
+      clientRes.end('Tiempo de espera agotado al conectar con Google Sheets');
+    });
+  }
+  getWithRedirect(GOOGLE_SHEETS_CSV_URL);
+}
+
 if (useExpress) {
   const express = require('express');
   const app = express();
@@ -25,6 +61,11 @@ if (useExpress) {
   // Health check endpoint for Hostinger / Cloud monitoring
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+  });
+
+  // Reverse proxy for Google Sheets CSV live synchronization
+  app.get('/api/sheets-sync', (req, res) => {
+    proxyGoogleSheets(res);
   });
 
   // Serve static assets with caching
@@ -73,6 +114,13 @@ if (useExpress) {
     }
 
     const cleanUrl = req.url.split('?')[0];
+
+    // Reverse proxy for Google Sheets live synchronization
+    if (cleanUrl === '/api/sheets-sync') {
+      proxyGoogleSheets(res);
+      return;
+    }
+
     let filePath = path.join(DIST_DIR, cleanUrl === '/' ? 'index.html' : cleanUrl);
 
     // Security check: ensure path is within DIST_DIR
