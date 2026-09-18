@@ -1452,6 +1452,10 @@ function render() {
   renderSummary();
   renderList();
   renderFlow();
+  if (window.annualMatrixManager) {
+    window.annualMatrixManager.syncWithFlowData();
+    window.annualMatrixManager.render();
+  }
 }
 
 Object.entries(periodLabels).forEach(([value, label]) => $("periodSelect").insertAdjacentHTML("beforeend", `<option value="${value}">${label}</option>`));
@@ -3189,7 +3193,10 @@ const ANNUAL_BASES_DATA = [
 
 class AnnualMatrixManager {
   constructor() {
-    this.data = [...ANNUAL_BASES_DATA];
+    this.data = ANNUAL_BASES_DATA.map((item) => ({
+      ...item,
+      monthly: { ...item.monthly }
+    }));
     this.filter = {
       search: "",
       organism: "all",
@@ -3207,7 +3214,7 @@ class AnnualMatrixManager {
     };
     this.statusLabels = {
       actualizada: "Actualizada",
-      solicitud: "Se hizo solicitud",
+      solicitud: "En gestión / solicitud",
       no_aplica: "No existe base en ese mes",
       empty: "Pendiente / Sin reporte"
     };
@@ -3219,7 +3226,59 @@ class AnnualMatrixManager {
     };
   }
 
+  getPeriodForMonth(monthName) {
+    const NUM_BY_MONTH = {
+      enero: "01", febrero: "02", marzo: "03", abril: "04", mayo: "05", junio: "06",
+      julio: "07", agosto: "08", septiembre: "09", octubre: "10", noviembre: "11", diciembre: "12"
+    };
+    const num = NUM_BY_MONTH[monthName];
+    if (!num || typeof data === "undefined" || !data) return null;
+    return Object.keys(data).find((p) => p.endsWith(`-${num}`)) || null;
+  }
+
+  getFlowItemForMonth(baseName, monthName) {
+    const period = this.getPeriodForMonth(monthName);
+    if (!period || !data[period]) return null;
+    return data[period].find((item) => item.name.trim().toLowerCase() === baseName.trim().toLowerCase()) || null;
+  }
+
+  syncWithFlowData() {
+    if (typeof data === "undefined" || !data) return;
+
+    const MONTH_BY_NUM = {
+      "01": "enero", "02": "febrero", "03": "marzo", "04": "abril",
+      "05": "mayo", "06": "junio", "07": "julio", "08": "agosto",
+      "09": "septiembre", "10": "octubre", "11": "noviembre", "12": "diciembre"
+    };
+
+    Object.entries(data).forEach(([periodKey, baseRows]) => {
+      const parts = periodKey.split("-");
+      if (parts.length < 2) return;
+      const monthNum = parts[1];
+      const monthName = MONTH_BY_NUM[monthNum];
+      if (!monthName) return;
+
+      baseRows.forEach((flowItem) => {
+        const matrixBase = this.data.find(
+          (b) => b.name.trim().toLowerCase() === flowItem.name.trim().toLowerCase()
+        );
+        if (!matrixBase) return;
+
+        if (!flowItem.applies) {
+          matrixBase.monthly[monthName] = "no_aplica";
+        } else if (flowItem.health === "done" || flowItem.progress >= steps.length) {
+          matrixBase.monthly[monthName] = "actualizada";
+        } else if (flowItem.health === "waiting" || flowItem.health === "active" || flowItem.progress > 0 || flowItem.incident) {
+          matrixBase.monthly[monthName] = "solicitud";
+        } else {
+          matrixBase.monthly[monthName] = "empty";
+        }
+      });
+    });
+  }
+
   init() {
+    this.syncWithFlowData();
     this.populateOrgFilter();
     this.bindEvents();
     this.render();
@@ -3305,6 +3364,7 @@ class AnnualMatrixManager {
   }
 
   render() {
+    this.syncWithFlowData();
     const tbody = $("annualMatrixTableBody");
     if (!tbody) return;
 
@@ -3372,6 +3432,11 @@ class AnnualMatrixManager {
         let status = rawStatus;
         let icon = this.statusIcons[status] || "·";
         let cellClass = status;
+
+        const period = this.getPeriodForMonth(m);
+        const flowItem = this.getFlowItemForMonth(item.name, m);
+        const hasWorkflow = Boolean(period) && !isNoCut;
+
         let tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: ${this.statusLabels[status] || status}`;
 
         if (isNoCut) {
@@ -3382,9 +3447,19 @@ class AnnualMatrixManager {
           cellClass = "no_aplica";
           icon = "—";
           tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: No existe base en ese mes (${escapeHtml(item.periodicityLabel)}) · ${escapeHtml(item.cadenceNote)}`;
+        } else if (flowItem) {
+          if (flowItem.health === "done" || flowItem.progress >= steps.length) {
+            tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: Actualizada (Flujo cerrado)`;
+          } else if (flowItem.incident) {
+            tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: Bloqueada (${escapeHtml(flowItem.incident.reason)})`;
+          } else if (flowItem.progress > 0) {
+            const stepMeta = steps[flowItem.progress] || { label: "En proceso" };
+            tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: En curso - ${stepMeta.label} (${percent(flowItem)}%)`;
+          } else if (flowItem.health === "waiting") {
+            tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: En espera de entrega por la fuente`;
+          }
         }
 
-        const hasWorkflow = (m === "agosto" || m === "septiembre") && !isNoCut;
         if (hasWorkflow) tooltipText += " (Clic para ver flujo)";
 
         return `
@@ -3445,8 +3520,10 @@ class AnnualMatrixManager {
         const month = cell.dataset.month;
         const hasWorkflow = cell.dataset.hasWorkflow === "true";
         if (hasWorkflow) {
-          const period = month === "agosto" ? "2026-08" : "2026-09";
-          this.drillDownToBase(baseName, period);
+          const period = this.getPeriodForMonth(month);
+          if (period) {
+            this.drillDownToBase(baseName, period);
+          }
         }
       });
     });
@@ -3486,6 +3563,7 @@ function switchFlowSubView(subview) {
     if (periodCtrl) periodCtrl.style.display = "none";
 
     if (window.annualMatrixManager) {
+      window.annualMatrixManager.syncWithFlowData();
       window.annualMatrixManager.render();
     }
   } else {
