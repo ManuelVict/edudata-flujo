@@ -49,7 +49,7 @@ const periods = {
   ]
 };
 
-const storageKey = "edudata-flujo-demo-v1";
+const storageKey = "edudata-flujo-demo-v2";
 const seed = () => Object.fromEntries(Object.entries(periods).map(([period, rows]) => [period, rows.map(([name, organism, sourceOwner, dashboard, owner, applies, progress, health, incident]) => ({ name, organism, sourceOwner, dashboard, owner, applies, progress, health, incident: incident ? { reason: incident, owner: "Coordinación Edudata" } : null }))]));
 let data = loadData();
 let selectedPeriod = "2026-09";
@@ -110,9 +110,9 @@ const nodeMeta = {
     title: "Enviar solicitud",
     subtitle: "Requerimiento formal",
     icon: `<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
-    owner: (it) => it.sourceOwner,
-    desc: "Emisión de solicitud formal o verificación de disponibilidad directa ante la entidad fuente (SIMAT, Humano, PAE, etc.).",
-    inputs: ["Oficio de solicitud o conector automatizado", "Periodo de corte solicitado"],
+    owner: (it) => it.name === "HUMANO" ? "Manuel" : (it.requester || it.owner),
+    desc: "Emisión de requerimiento formal ante el custodio de la entidad fuente (Glasford Britton para HUMANO) para apertura del corte mensual.",
+    inputs: ["Oficio de solicitud o comunicación formal", "Periodo de corte solicitado"],
     outputs: ["Comprobante de radicado o ticket de solicitud emitido"]
   },
   "recibida": {
@@ -139,8 +139,8 @@ const nodeMeta = {
     stepIndex: 3,
     title: "¿Validado?",
     subtitle: "Control de calidad",
-    owner: (it) => it.owner,
-    desc: "Revisión técnica de integridad: completitud de registros, detección de duplicados, validación de rangos y consistencia histórica.",
+    owner: (it) => "Responsabilidad compartida: Eduardo (apoyo de Nini, Sebastián y Manuel)",
+    desc: "Revisión técnica de integridad, completitud y consistencia histórica. Responsabilidad compartida del equipo: normalmente revisa Eduardo, con apoyo de Nini y, según el caso, Sebastián y Manuel.",
     inputs: ["Reglas de validación y datos del mes anterior"],
     outputs: ["Ruta A: Aprobado a almacenamiento / Ruta B: Devolución para corrección"]
   },
@@ -206,14 +206,25 @@ const nodeMeta = {
   },
   "recordatorio": {
     stepIndex: 1,
-    step: "ESC",
+    step: "REI",
     title: "Recordatorio",
-    subtitle: "Insistencia y escalamiento",
+    subtitle: "Reiteración a fuente",
     icon: `<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><polyline points="12 7 12 12 15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
-    owner: (it) => it.sourceOwner,
-    desc: "Requerimiento de insistencia o alerta a directivos por falta de entrega de datos por parte de la dependencia fuente.",
-    inputs: ["Días de mora desde la fecha límite"],
-    outputs: ["Oficio de recordatorio o escalamiento a Secretaría"]
+    owner: (it) => it.name === "HUMANO" ? "Manuel" : (it.requester || "Manuel"),
+    desc: "Reiteración formal de la solicitud ante la dependencia fuente (Glasford Britton para HUMANO). Manuel realiza hasta 2 requerimientos de insistencia antes de escalar.",
+    inputs: ["Días de mora desde la fecha límite", "Historial de solicitudes"],
+    outputs: ["Hasta 2 comunicaciones de reiteración", "Ruta A: Entrega de base / Ruta B: Escalamiento a Nini"]
+  },
+  "escalamiento": {
+    stepIndex: 1,
+    step: "ESC",
+    title: "Escalamiento",
+    subtitle: "Solicitud Subsecretaría",
+    icon: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+    owner: "Nini (Líder de proceso)",
+    desc: "Si tras dos reiteraciones de Manuel a Glasford no se recibe la base, Manuel escala la situación a la líder de proceso (Nini) para que realice la solicitud oficial a la Subsecretaría.",
+    inputs: ["2 reiteraciones a Glasford sin respuesta", "Alerta formal de mora"],
+    outputs: ["Solicitud oficial emitida ante la Subsecretaría", "Desbloqueo de entrega de datos"]
   },
   "corregir-datos": {
     stepIndex: 2,
@@ -264,7 +275,7 @@ const nodeMeta = {
 const nodeEdgeMap = {
   "inicio": ["e-inicio-aplica"],
   "aplica": ["e-inicio-aplica", "e-aplica-solicitud", "e-aplica-noaplica", "b-aplica-yes", "b-aplica-no"],
-  "solicitud": ["e-aplica-solicitud", "e-solicitud-recibida", "b-aplica-yes"],
+  "solicitud": ["e-aplica-solicitud", "e-solicitud-recibida", "e-escalamiento-solicitud", "b-aplica-yes", "b-escalamiento-res"],
   "recibida": ["e-solicitud-recibida", "e-recibida-procesamiento", "e-recibida-recordatorio", "e-ret-recordatorio", "b-recibida-yes", "b-recibida-no"],
   "procesamiento": ["e-recibida-procesamiento", "e-procesamiento-validacion", "e-ret-corregir-datos", "b-recibida-yes"],
   "validacion": ["e-procesamiento-validacion", "e-validacion-drive", "e-validacion-corregir-datos", "e-ret-corregir-datos", "b-validacion-yes", "b-validacion-no"],
@@ -274,7 +285,8 @@ const nodeEdgeMap = {
   "revision-final": ["e-tablero-revision", "e-revision-terminada", "e-revision-corregir-tablero", "e-ret-corregir-tablero", "b-revision-yes", "b-revision-no"],
   "terminada": ["e-revision-terminada", "b-revision-yes"],
   "no-aplica": ["e-aplica-noaplica", "b-aplica-no"],
-  "recordatorio": ["e-recibida-recordatorio", "e-ret-recordatorio", "b-recibida-no"],
+  "recordatorio": ["e-recibida-recordatorio", "e-ret-recordatorio", "e-recordatorio-escalamiento", "b-recibida-no", "b-recordatorio-escalar"],
+  "escalamiento": ["e-recordatorio-escalamiento", "e-escalamiento-solicitud", "b-recordatorio-escalar", "b-escalamiento-res"],
   "corregir-datos": ["e-validacion-corregir-datos", "e-ret-corregir-datos", "b-validacion-no"],
   "subir-drive": ["e-drive-subirdrive", "e-ret-subirdrive", "b-drive-yes"],
   "cargar-lago": ["e-lago-cargarlago", "e-ret-cargarlago", "b-lago-yes"],
@@ -290,7 +302,7 @@ function graphState(item, stepIndex) {
 }
 
 function edgeBadge(id, text, cx, cy, type = "yes") {
-  const w = text.length > 3 ? 44 : 34;
+  const w = Math.max(34, Math.round(text.length * 6.8 + 14));
   const h = 20;
   return `<g class="edge-badge" id="${id}" transform="translate(${cx - w/2}, ${cy - h/2})">
     <rect class="edge-badge-rect ${type}" width="${w}" height="${h}" rx="10"/>
@@ -430,6 +442,7 @@ function renderGraph(item, selectedNodeId = null) {
     "terminada": graphState(item, 8),
     "no-aplica": item.applies ? "branch" : "current",
     "recordatorio": waiting ? "waiting" : "branch",
+    "escalamiento": waiting ? "waiting" : "branch",
     "corregir-datos": dataBlocked ? "blocked" : "branch",
     "subir-drive": graphState(item, 4),
     "cargar-lago": graphState(item, 5),
@@ -459,6 +472,7 @@ function renderGraph(item, selectedNodeId = null) {
     cardNode({ id: "terminada", cx: 1840, cy: 270, meta: nodeMeta["terminada"], state: nodeStates["terminada"], isActive: item.applies && item.progress >= 9, isSelected: selectedNodeId === "terminada", item }),
     cardNode({ id: "no-aplica", cx: 265, cy: 462, meta: nodeMeta["no-aplica"], state: nodeStates["no-aplica"], isActive: !item.applies, isSelected: selectedNodeId === "no-aplica", item }),
     cardNode({ id: "recordatorio", cx: 615, cy: 78, meta: nodeMeta["recordatorio"], state: nodeStates["recordatorio"], isActive: waiting, isSelected: selectedNodeId === "recordatorio", item }),
+    cardNode({ id: "escalamiento", cx: 350, cy: 78, meta: nodeMeta["escalamiento"], state: nodeStates["escalamiento"], isActive: false, isSelected: selectedNodeId === "escalamiento", item }),
     cardNode({ id: "corregir-datos", cx: 965, cy: 462, meta: nodeMeta["corregir-datos"], state: nodeStates["corregir-datos"], isActive: dataBlocked, isSelected: selectedNodeId === "corregir-datos", item }),
     cardNode({ id: "subir-drive", cx: 1140, cy: 78, meta: nodeMeta["subir-drive"], state: nodeStates["subir-drive"], isActive: false, isSelected: selectedNodeId === "subir-drive", item }),
     cardNode({ id: "cargar-lago", cx: 1315, cy: 462, meta: nodeMeta["cargar-lago"], state: nodeStates["cargar-lago"], isActive: false, isSelected: selectedNodeId === "cargar-lago", item }),
@@ -493,6 +507,10 @@ function renderGraph(item, selectedNodeId = null) {
       <path id="e-recibida-recordatorio" class="branch ${waiting ? 'chosen' : ''}" d="M615 232V116"/>
       <path id="e-ret-recordatorio" class="return ${waiting ? 'chosen' : ''}" d="M691 78 H 710 A 10 10 0 0 1 720 88 V 185 A 10 10 0 0 1 710 195 H 625 A 10 10 0 0 0 615 205 V 232"/>
 
+      <!-- Branch: Recordatorio -> Escalamiento a Líder (Nini) -->
+      <path id="e-recordatorio-escalamiento" class="branch ${waiting ? 'chosen' : ''}" d="M539 78 H 426"/>
+      <path id="e-escalamiento-solicitud" class="return ${waiting ? 'chosen' : ''}" d="M350 116 V 175 A 10 10 0 0 0 360 185 H 430 A 10 10 0 0 1 440 195 V 232"/>
+
       <!-- Branch: Validación -> Corregir datos -->
       <path id="e-validacion-corregir-datos" class="branch ${dataBlocked ? 'chosen' : ''}" d="M965 308V424"/>
       <path id="e-ret-corregir-datos" class="return ${dataBlocked ? 'chosen' : ''}" d="M889 462 H 800 A 10 10 0 0 1 790 452 V 308"/>
@@ -517,6 +535,9 @@ function renderGraph(item, selectedNodeId = null) {
 
       ${edgeBadge("b-recibida-yes", "Sí", 696, 252, "yes")}
       ${edgeBadge("b-recibida-no", "No", 615, 173, "no")}
+
+      ${edgeBadge("b-recordatorio-escalar", "> 2 reiteraciones", 482, 56, "no")}
+      ${edgeBadge("b-escalamiento-res", "Vía Subsecretaría", 395, 185, "info")}
 
       ${edgeBadge("b-validacion-yes", "Sí", 1052, 252, "yes")}
       ${edgeBadge("b-validacion-no", "No", 965, 366, "no")}
@@ -563,6 +584,7 @@ function renderMinimapSvg(item) {
     // Branches
     { x: 189, y: 424, w: 152, h: 76, state: item.applies ? "pending" : "current" },
     { x: 539, y: 40, w: 152, h: 76, state: waiting ? "waiting" : "pending" },
+    { x: 274, y: 40, w: 152, h: 76, state: waiting ? "waiting" : "pending" },
     { x: 889, y: 424, w: 152, h: 76, state: dataBlocked ? "blocked" : "pending" },
     { x: 1064, y: 40, w: 152, h: 76, state: graphState(item, 4) },
     { x: 1239, y: 424, w: 152, h: 76, state: graphState(item, 5) },
@@ -1406,8 +1428,16 @@ function renderFlow() {
   }
 
   const current = steps[Math.min(item.progress, steps.length - 1)];
+  let stageOwner = item.owner;
+  if (item.applies) {
+    if (item.progress === 0) {
+      stageOwner = (typeof nodeMeta["solicitud"]?.owner === "function" ? nodeMeta["solicitud"].owner(item) : nodeMeta["solicitud"]?.owner) || item.owner;
+    } else if (item.progress === 3) {
+      stageOwner = (typeof nodeMeta["validacion"]?.owner === "function" ? nodeMeta["validacion"].owner(item) : nodeMeta["validacion"]?.owner) || item.owner;
+    }
+  }
   $("currentStage").textContent = !item.applies ? "No aplica en este periodo" : item.progress >= steps.length ? "Actualización cerrada" : current.label;
-  $("currentOwner").textContent = item.applies ? item.owner : "Sin asignación";
+  $("currentOwner").textContent = item.applies ? stageOwner : "Sin asignación";
   $("nextAction").textContent = !item.applies ? "Revisar nuevamente el próximo mes" : item.progress >= steps.length ? "No hay acciones pendientes" : current.action;
   $("advanceButton").disabled = !item.applies || item.progress >= steps.length || Boolean(item.incident);
   $("blockButton").disabled = !item.applies || item.progress >= steps.length || Boolean(item.incident);
