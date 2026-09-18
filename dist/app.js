@@ -50,17 +50,40 @@ const periods = {
 };
 
 const storageKey = "edudata-flujo-demo-v2";
+const closedPeriodsKey = "edudata-flujo-closed-periods";
+const periodLabelsKey = "edudata-flujo-period-labels";
+
+const defaultPeriodLabels = { "2026-09": "Septiembre 2026", "2026-08": "Agosto 2026" };
+const defaultClosedPeriods = ["2026-08"];
+
+function loadPeriodLabels() {
+  try { return JSON.parse(localStorage.getItem(periodLabelsKey)) || { ...defaultPeriodLabels }; }
+  catch { return { ...defaultPeriodLabels }; }
+}
+function savePeriodLabels() { localStorage.setItem(periodLabelsKey, JSON.stringify(periodLabels)); }
+
+function loadClosedPeriods() {
+  try { return JSON.parse(localStorage.getItem(closedPeriodsKey)) || [...defaultClosedPeriods]; }
+  catch { return [...defaultClosedPeriods]; }
+}
+function saveClosedPeriods() { localStorage.setItem(closedPeriodsKey, JSON.stringify(closedPeriods)); }
+
+let periodLabels = loadPeriodLabels();
+let closedPeriods = loadClosedPeriods();
+
 const seed = () => Object.fromEntries(Object.entries(periods).map(([period, rows]) => [period, rows.map(([name, organism, sourceOwner, dashboard, owner, applies, progress, health, incident]) => ({ name, organism, sourceOwner, dashboard, owner, applies, progress, health, incident: incident ? { reason: incident, owner: "Coordinación Edudata" } : null }))]));
 let data = loadData();
-let selectedPeriod = "2026-09";
+let selectedPeriod = Object.keys(periodLabels).sort((a, b) => b.localeCompare(a))[0] || "2026-09";
 let selectedName = "SIMAT";
 
 const $ = (id) => document.getElementById(id);
-const periodLabels = { "2026-09": "Septiembre 2026", "2026-08": "Agosto 2026" };
 
 if (typeof window !== "undefined") {
   window.getSelectedName = () => selectedName;
   window.getSelectedPeriod = () => selectedPeriod;
+  window.getPeriodLabels = () => periodLabels;
+  window.getClosedPeriods = () => closedPeriods;
+  window.getData = () => data;
 }
 
 function loadData() {
@@ -69,9 +92,26 @@ function loadData() {
 }
 
 function saveData() { localStorage.setItem(storageKey, JSON.stringify(data)); }
-function currentRows() { return data[selectedPeriod]; }
+function currentRows() { return data[selectedPeriod] || []; }
 function selectedBase() { return currentRows().find((item) => item.name === selectedName) || currentRows()[0]; }
 function percent(item) { return item.applies ? Math.round((item.progress / steps.length) * 100) : 0; }
+
+function getUnresolvedPendingCut(item) {
+  if (!item || !item.pendingCut) return null;
+  const prevPeriod = item.pendingCut.period;
+  if (!prevPeriod || !data[prevPeriod]) return null;
+  const prevBase = data[prevPeriod].find((b) => b.name.trim().toLowerCase() === item.name.trim().toLowerCase());
+  if (prevBase && prevBase.applies && prevBase.health !== "done" && prevBase.progress < steps.length) {
+    return {
+      period: prevPeriod,
+      periodLabel: periodLabels[prevPeriod] || item.pendingCut.periodLabel || prevPeriod,
+      progress: prevBase.progress,
+      stageLabel: steps[prevBase.progress]?.label || "En curso",
+      owner: prevBase.owner || item.owner
+    };
+  }
+  return null;
+}
 
 function deriveHealth(item) {
   if (!item.applies) return "na";
@@ -1372,6 +1412,16 @@ function renderList() {
     rows = rows.filter((item) => item.applies && (deriveHealth(item) === "waiting" || deriveHealth(item) === "blocked"));
   } else if (filterMode === "done") {
     rows = rows.filter((item) => item.applies && deriveHealth(item) === "done");
+  } else if (filterMode === "pending") {
+    rows = rows.filter((item) => Boolean(getUnresolvedPendingCut(item)));
+  }
+
+  const pendingCount = currentRows().filter((item) => Boolean(getUnresolvedPendingCut(item))).length;
+  const badgeEl = $("badgePendingCount");
+  if (badgeEl) {
+    badgeEl.textContent = pendingCount;
+    const tabPending = document.querySelector(".filter-tab-pending");
+    if (tabPending) tabPending.classList.toggle("has-pending", pendingCount > 0);
   }
 
   $("baseCount").textContent = `${rows.length} de ${currentRows().length}`;
@@ -1384,6 +1434,7 @@ function renderList() {
     const health = deriveHealth(item);
     const orgClass = (item.organism || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const per = BASE_PERIODICITIES[item.name] || { type: "mensual", label: "Mensual", emoji: "🟣", fullLabel: "Mensual" };
+    const pendingDebt = getUnresolvedPendingCut(item);
     return `<button class="base-item ${item.name === selectedName ? "active" : ""}" data-name="${item.name}">
       <div class="base-item-main">
         <span class="dot ${health}"></span>
@@ -1392,6 +1443,7 @@ function renderList() {
             <strong>${item.name}</strong>
             <span class="periodicity-badge-sm ${per.type}" title="Periodicidad: ${per.fullLabel}">${per.label}</span>
             <span class="org-tag ${orgClass}">${item.organism}</span>
+            ${pendingDebt ? `<span class="pending-cut-tag" title="Corte pendiente de ${escapeHtml(pendingDebt.periodLabel)}">⚠️ Corte pendiente</span>` : ""}
           </div>
           <small>${item.dashboard}</small>
         </div>
@@ -1417,6 +1469,29 @@ function renderFlow() {
   $("healthBadge").className = `health-badge ${health}`;
   $("notApplicable").hidden = true;
   $("flowContent").hidden = false;
+
+  const pendingDebt = getUnresolvedPendingCut(item);
+  const banner = $("pendingCutBanner");
+  if (banner) {
+    if (pendingDebt) {
+      banner.hidden = false;
+      banner.style.display = "flex";
+      $("pendingCutTitle").textContent = `⚠️ Corte pendiente: ${pendingDebt.periodLabel}`;
+      $("pendingCutDesc").textContent = `Esta base no completó el ciclo del mes anterior (quedó en Etapa: ${pendingDebt.stageLabel}). Requiere gestión de cobro y entrega con ${escapeHtml(item.sourceOwner || item.owner)}.`;
+      const btnJump = $("btnViewPendingCut");
+      if (btnJump) {
+        btnJump.onclick = () => {
+          selectedPeriod = pendingDebt.period;
+          updatePeriodSelectOptions();
+          $("periodSelect").value = pendingDebt.period;
+          selectBaseWithTransition(item.name);
+        };
+      }
+    } else {
+      banner.hidden = true;
+      banner.style.display = "none";
+    }
+  }
 
   $("flowDiagram").innerHTML = renderGraph(item, flowCanvas?.selectedNodeId);
   $("minimapSvg").innerHTML = renderMinimapSvg(item);
@@ -1458,11 +1533,24 @@ function render() {
   }
 }
 
-Object.entries(periodLabels).forEach(([value, label]) => $("periodSelect").insertAdjacentHTML("beforeend", `<option value="${value}">${label}</option>`));
-$("periodSelect").value = selectedPeriod;
+function updatePeriodSelectOptions() {
+  const sel = $("periodSelect");
+  if (!sel) return;
+  sel.innerHTML = "";
+  Object.entries(periodLabels)
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .forEach(([value, label]) => {
+      sel.insertAdjacentHTML("beforeend", `<option value="${value}">${label}</option>`);
+    });
+  sel.value = selectedPeriod;
+}
+
+updatePeriodSelectOptions();
 $("periodSelect").addEventListener("change", (event) => {
   selectedPeriod = event.target.value;
-  selectBaseWithTransition(currentRows()[0].name);
+  selectedName = currentRows()[0]?.name || "SIMAT";
+  render();
+  if (flowCanvas) flowCanvas.fitView(true);
 });
 $("baseSearch").addEventListener("input", renderList);
 
@@ -1480,6 +1568,167 @@ window.addEventListener("keydown", (e) => {
     $("baseSearch")?.select();
   }
 });
+
+function showToast(message, duration = 4200) {
+  let toast = document.querySelector(".toast-notification");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "toast-notification";
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span style="font-size: 1.15rem;">🗓️</span> <span>${escapeHtml(message)}</span>`;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, duration);
+}
+
+function getNextPeriod(periodKey) {
+  const parts = periodKey.split("-");
+  let year = parseInt(parts[0], 10);
+  let month = parseInt(parts[1], 10);
+  month += 1;
+  if (month > 12) {
+    month = 1;
+    year += 1;
+  }
+  const nextKey = `${year}-${String(month).padStart(2, "0")}`;
+  const MONTH_NAMES = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+  };
+  return {
+    key: nextKey,
+    label: `${MONTH_NAMES[month]} ${year}`,
+    monthName: MONTH_NAMES[month].toLowerCase(),
+    year
+  };
+}
+
+$("btnOpenRolloverModal")?.addEventListener("click", () => {
+  const sortedPeriods = Object.keys(periodLabels).sort((a, b) => b.localeCompare(a));
+  const closingPeriod = selectedPeriod || sortedPeriods[0];
+  let targetClosingPeriod = closingPeriod;
+  let targetOpeningPeriod = getNextPeriod(closingPeriod);
+
+  if (data[targetOpeningPeriod.key]) {
+    targetClosingPeriod = targetOpeningPeriod.key;
+    targetOpeningPeriod = getNextPeriod(targetOpeningPeriod.key);
+  }
+
+  const rows = data[targetClosingPeriod] || [];
+  const doneItems = rows.filter((i) => i.applies && (i.health === "done" || i.progress >= steps.length));
+  const pendingItems = rows.filter((i) => i.applies && !(i.health === "done" || i.progress >= steps.length));
+  const naItems = rows.filter((i) => !i.applies);
+
+  const modal = $("rolloverDialog");
+  if (!modal) return;
+
+  $("rolloverModalTitle").textContent = `Cerrar ${periodLabels[targetClosingPeriod] || targetClosingPeriod} y Abrir ${targetOpeningPeriod.label}`;
+  $("rolloverClosingPeriodName").textContent = periodLabels[targetClosingPeriod] || targetClosingPeriod;
+  $("rolloverOpeningPeriodName").textContent = targetOpeningPeriod.label;
+
+  $("rbDoneCount").textContent = doneItems.length;
+  $("rbPendingCount").textContent = pendingItems.length;
+  $("rbNaCount").textContent = naItems.length;
+
+  const pendingList = $("rolloverPendingList");
+  if (pendingList) {
+    if (pendingItems.length === 0) {
+      pendingList.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--green); font-size: 0.8rem; font-weight: 750;">✓ ¡Excelente! Todas las bases aplicables están terminadas. Ninguna quedará con corte pendiente.</div>`;
+    } else {
+      pendingList.innerHTML = pendingItems.map((item) => {
+        const stepLabel = steps[item.progress]?.label || "En curso";
+        return `
+          <div class="rollover-pending-item">
+            <div>
+              <strong>${escapeHtml(item.name)}</strong>
+              <div style="font-size: 0.68rem; color: var(--muted);">${escapeHtml(item.organism)}</div>
+            </div>
+            <div style="text-align: right;">
+              <span style="display: block; font-weight: 750; color: #b91c1c;">Quedó en: ${escapeHtml(stepLabel)} (${percent(item)}%)</span>
+              <span style="display: block; font-size: 0.68rem; color: var(--muted);">Resp: ${escapeHtml(item.owner)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  $("btnConfirmRolloverText").textContent = `Confirmar Cierre y Abrir ${targetOpeningPeriod.label}`;
+  modal.dataset.closingPeriod = targetClosingPeriod;
+  modal.dataset.openingKey = targetOpeningPeriod.key;
+  modal.dataset.openingLabel = targetOpeningPeriod.label;
+  modal.dataset.openingMonth = targetOpeningPeriod.monthName;
+
+  modal.showModal();
+});
+
+$("btnConfirmRollover")?.addEventListener("click", () => {
+  const modal = $("rolloverDialog");
+  if (!modal) return;
+
+  const closingPeriod = modal.dataset.closingPeriod;
+  const openingKey = modal.dataset.openingKey;
+  const openingLabel = modal.dataset.openingLabel;
+  const openingMonth = modal.dataset.openingMonth;
+
+  if (!closingPeriod || !openingKey) return;
+
+  if (!closedPeriods.includes(closingPeriod)) {
+    closedPeriods.push(closingPeriod);
+    saveClosedPeriods();
+  }
+
+  const prevRows = data[closingPeriod] || [];
+  const newRows = ANNUAL_BASES_DATA.map((matrixBase) => {
+    const isScheduled = matrixBase.scheduledMonths.includes(openingMonth);
+    const prevItem = prevRows.find((p) => p.name.trim().toLowerCase() === matrixBase.name.trim().toLowerCase());
+
+    let pendingCut = null;
+    if (prevItem && prevItem.applies && prevItem.health !== "done" && prevItem.progress < steps.length) {
+      pendingCut = {
+        period: closingPeriod,
+        periodLabel: periodLabels[closingPeriod] || closingPeriod,
+        progress: prevItem.progress,
+        stageLabel: steps[prevItem.progress]?.label || "En curso"
+      };
+    }
+
+    return {
+      name: matrixBase.name,
+      organism: matrixBase.organism,
+      sourceOwner: matrixBase.sourceOwner,
+      dashboard: prevItem ? prevItem.dashboard : "Tableros EduData",
+      owner: prevItem ? prevItem.owner : "Eduardo",
+      applies: isScheduled,
+      progress: 0,
+      health: isScheduled ? "waiting" : "na",
+      incident: null,
+      pendingCut: pendingCut
+    };
+  });
+
+  data[openingKey] = newRows;
+  periodLabels[openingKey] = openingLabel;
+
+  selectedPeriod = openingKey;
+  selectedName = newRows.find((r) => r.applies)?.name || newRows[0].name;
+
+  saveData();
+  savePeriodLabels();
+  saveClosedPeriods();
+
+  modal.close();
+  updatePeriodSelectOptions();
+  render();
+
+  showToast(`¡Periodo ${openingLabel} abierto exitosamente! El flujo de bases ha vuelto al inicio.`);
+});
+
+$("btnCloseRolloverModal")?.addEventListener("click", () => $("rolloverDialog")?.close());
+$("btnCancelRollover")?.addEventListener("click", () => $("rolloverDialog")?.close());
 
 $("btnResetTop")?.addEventListener("click", () => $("resetButton").click());
 $("btnCollapseSidebar")?.addEventListener("click", () => toggleZenMode(true));
@@ -1513,12 +1762,16 @@ $("clearBlockButton").addEventListener("click", () => {
 });
 $("resetButton").addEventListener("click", () => {
   data = seed();
+  closedPeriods = [...defaultClosedPeriods];
+  periodLabels = { ...defaultPeriodLabels };
   saveData();
+  saveClosedPeriods();
+  savePeriodLabels();
   selectedPeriod = "2026-09";
   selectedName = "SIMAT";
   filterMode = "all";
   if (isZenMode) toggleZenMode(false);
-  $("periodSelect").value = selectedPeriod;
+  updatePeriodSelectOptions();
   $("baseSearch").value = "";
   render();
   if (flowCanvas) {
@@ -3214,13 +3467,15 @@ class AnnualMatrixManager {
     };
     this.statusLabels = {
       actualizada: "Actualizada",
-      solicitud: "En gestión / solicitud",
+      solicitud: "En gestión (mes actual)",
+      corte_pendiente: "Corte pendiente",
       no_aplica: "No existe base en ese mes",
       empty: "Pendiente / Sin reporte"
     };
     this.statusIcons = {
       actualizada: "✓",
       solicitud: "⏳",
+      corte_pendiente: "⚠️",
       no_aplica: "—",
       empty: "·"
     };
@@ -3258,6 +3513,8 @@ class AnnualMatrixManager {
       const monthName = MONTH_BY_NUM[monthNum];
       if (!monthName) return;
 
+      const isPeriodClosed = typeof closedPeriods !== "undefined" && closedPeriods.includes(periodKey);
+
       baseRows.forEach((flowItem) => {
         const matrixBase = this.data.find(
           (b) => b.name.trim().toLowerCase() === flowItem.name.trim().toLowerCase()
@@ -3269,9 +3526,9 @@ class AnnualMatrixManager {
         } else if (flowItem.health === "done" || flowItem.progress >= steps.length) {
           matrixBase.monthly[monthName] = "actualizada";
         } else if (flowItem.health === "waiting" || flowItem.health === "active" || flowItem.progress > 0 || flowItem.incident) {
-          matrixBase.monthly[monthName] = "solicitud";
+          matrixBase.monthly[monthName] = isPeriodClosed ? "corte_pendiente" : "solicitud";
         } else {
-          matrixBase.monthly[monthName] = "empty";
+          matrixBase.monthly[monthName] = isPeriodClosed ? "corte_pendiente" : "empty";
         }
       });
     });
@@ -3375,12 +3632,14 @@ class AnnualMatrixManager {
     const driveBases = this.data.filter((d) => d.drive).length;
     let totalUpdated = 0;
     let totalSolicitud = 0;
+    let totalPending = 0;
 
     this.data.forEach((d) => {
       this.months.forEach((m) => {
         const st = d.monthly[m];
         if (st === "actualizada") totalUpdated++;
         else if (st === "solicitud") totalSolicitud++;
+        else if (st === "corte_pendiente") totalPending++;
       });
     });
 
@@ -3400,6 +3659,7 @@ class AnnualMatrixManager {
     if ($("annualKpiDrive")) $("annualKpiDrive").textContent = `${driveBases} (${Math.round((driveBases / totalBases) * 100)}%)`;
     if ($("annualKpiUpdated")) $("annualKpiUpdated").textContent = totalUpdated;
     if ($("annualKpiRequests")) $("annualKpiRequests").textContent = totalSolicitud;
+    if ($("annualKpiPending")) $("annualKpiPending").textContent = totalPending;
 
     if ($("matrixFilterCount")) {
       $("matrixFilterCount").textContent = `${filtered.length} de ${totalBases} bases`;
@@ -3447,6 +3707,11 @@ class AnnualMatrixManager {
           cellClass = "no_aplica";
           icon = "—";
           tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: No existe base en ese mes (${escapeHtml(item.periodicityLabel)}) · ${escapeHtml(item.cadenceNote)}`;
+        } else if (status === "corte_pendiente") {
+          cellClass = "corte_pendiente";
+          icon = "⚠️";
+          const stepMeta = flowItem && steps[flowItem.progress] ? steps[flowItem.progress].label : "En curso";
+          tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: Corte pendiente (Mes vencido sin entrega, quedó en: ${stepMeta})`;
         } else if (flowItem) {
           if (flowItem.health === "done" || flowItem.progress >= steps.length) {
             tooltipText = `${escapeHtml(item.name)} · ${this.monthShort[m]}: Actualizada (Flujo cerrado)`;
